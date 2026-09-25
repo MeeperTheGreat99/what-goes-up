@@ -11,6 +11,10 @@ config_version=5
 [application]
 
 config/name="What Goes Up"
+<<<<<<< HEAD
+=======
+run/main_scene="res://evelator.tscn"
+>>>>>>> acb5a5e7049c742979fc5a9a9a5997f82959c749
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
 
