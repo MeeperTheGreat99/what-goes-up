@@ -1,0 +1,242 @@
+#include "renderer.h"
+#include "entity.h"
+#include "gl.h"
+#include "model.h"
+#include "shader.h"
+#include "terrain.h"
+#include "texture.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
+
+static float screenVertices[] = {
+    -1.0f, 3.0f, 0.0f, 2.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+    3.0f, -1.0f, 2.0f, 0.0f,
+};
+
+static float quadVertices[] = {
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, -1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 1.0f, 1.0f,
+};
+
+Renderer::Renderer() {
+    m_width = 800;
+    m_height = 600;
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glGenVertexArrays(1, &m_screenVAO);
+    glBindVertexArray(m_screenVAO);
+
+    glGenBuffers(1, &m_screenVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_screenVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screenVertices), screenVertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+
+    glGenVertexArrays(1, &m_quadVAO);
+    glBindVertexArray(m_quadVAO);
+
+    glGenBuffers(1, &m_quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+
+    CreateFramebuffers();
+
+    m_objectShader = new Shader("res/shaders/object.vs", "res/shaders/object.fs");
+    m_objectShader->Finalize();
+
+    m_terrainShader = new Shader("res/shaders/object.vs", "res/shaders/terrain.fs");
+    m_terrainShader->Define(Shader::Constant("TERRAIN_DEPTH", Terrain::kDepthConstant));
+    m_terrainShader->Finalize();
+    
+    m_screenShader = new Shader("res/shaders/screen.vs", "res/shaders/screen.fs");
+    m_screenShader->Finalize();
+
+    m_textShader = new TextShader();
+    m_textShader->Finalize();
+    
+    m_font = Font::Load("res/fonts/raleway.ttf");
+    
+    m_camera = nullptr;    
+}
+
+Renderer::~Renderer() {
+    delete m_font;
+    delete m_textShader;
+    delete m_screenShader;
+    delete m_terrainShader;
+    delete m_objectShader;
+
+    glBindVertexArray(0);
+    glDeleteBuffers(1, &m_quadVBO);
+    glDeleteVertexArrays(1, &m_quadVAO);
+    glDeleteBuffers(1, &m_screenVBO);
+    glDeleteVertexArrays(1, &m_screenVAO);
+
+    DeleteFramebuffers();
+}
+
+void Renderer::SetCamera(Camera* camera) {
+    m_camera = camera;
+    if (m_camera) {
+        m_camera->SetAspect((float)m_width / m_height);
+    }
+}
+
+void Renderer::Draw() {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_objectShader->Use();
+    Vector camPos;
+    if (m_camera) {
+        camPos = m_camera->GetPos();
+        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Proj"), m_camera->GetProj());
+        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("View"), m_camera->GetView());
+    }
+
+    for (auto& entry : Entity::Entities) {
+        Entity* entity = entry.second;
+        Vector angles = entity->GetAngles();
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
+        model *= glm::eulerAngleYXZ(angles.y, angles.x, angles.z);
+        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), model);
+        entity->Draw();
+    }
+
+    m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), glm::mat4(1.0f));
+    
+    glDisable(GL_DEPTH_TEST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
+    m_screenShader->Use();
+    m_screenShader->SetUniform(m_screenShader->GetUniformLocation("textie"), 0);
+
+    glBindVertexArray(m_screenVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    DrawText("stupid text", nullptr, 16, 0, 0);
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DrawText(const char* text, Font* font, int size, int x, int y, glm::vec4 color, TextJustify just) {
+    m_textShader->Use();
+    m_textShader->SetColor(color);
+    glBindVertexArray(m_quadVAO);
+
+    if (!font) {
+        font = m_font;
+    }
+
+    float sizeScalar = (float)size / font->GetSize();
+    const Font::GlyphMap& glyphs = font->GetGlyphs();
+
+    int cx = x;
+    int i = 0;
+    char ch;
+    while ((ch = text[i++])) {
+        if (!glyphs.count(ch)) {
+            continue;
+        }
+
+        const Font::Glyph& glyph = glyphs.at(ch);
+        if (glyph.texture) {    
+            TextCharPosition(x, y, glyph.width * sizeScalar, glyph.height * sizeScalar);
+            glyph.texture->Use(0);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+        x += glyph.advance * sizeScalar;
+    }
+}
+
+void Renderer::Resize(unsigned int width, unsigned int height) {
+    m_width = width;
+    m_height = height;
+    if (m_camera) {
+        m_camera->SetAspect((float)width / height);
+    }
+    RemakeFramebuffers();
+}
+
+float Renderer::XNDC(int x) {
+    return ((float)x / m_width) * 2.0f - 1.0f;
+}
+
+float Renderer::YNDC(int y) {
+    return ((float)y / m_height) * -2.0f + 1.0f;
+}
+
+void Renderer::CreateFramebuffers() {
+    glGenFramebuffers(1, &m_gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
+
+    glGenTextures(1, &m_gBufferTextures[0]);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gBufferTextures[0], 0);
+
+    glGenTextures(1, &m_gBufferTextures[1]);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_gBufferTextures[1], 0);
+
+    glGenTextures(1, &m_gBufferTextures[2]);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_gBufferTextures[2], 0);
+
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+    glDrawBuffers(sizeof(buffers) / sizeof(buffers[0]), buffers);
+
+    glGenRenderbuffers(1, &m_gBufferDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_gBufferDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_width, m_height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_gBufferDepth);
+}
+
+void Renderer::DeleteFramebuffers() {
+    glDeleteRenderbuffers(1, &m_gBufferDepth);
+    for (int i = 0; i < sizeof(m_gBufferTextures) / sizeof(m_gBufferTextures[0]); i++) {
+        glDeleteTextures(1, &m_gBufferTextures[i]);
+    }
+    glDeleteFramebuffers(1, &m_gBuffer);
+}
+
+void Renderer::RemakeFramebuffers() {
+    DeleteFramebuffers();
+    CreateFramebuffers();
+}
+
+void Renderer::TextCharPosition(int x, int y, int w, int h) {
+    glm::vec2 position(XNDC(x), YNDC(y));
+    glm::vec2 scale((float)w / m_width, (float)h / m_height);
+    m_textShader->SetPosition(position);
+    m_textShader->SetScale(scale);
+}
