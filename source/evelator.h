@@ -1,14 +1,19 @@
 #pragma once
-#include "../entity.h"
+#include "physentity.h"
 
-class Evelator : public Entity {
+class Evelator : public PhysEntity {
 public:
 
     Evelator() {
         m_model = Model::LoadExternal("res/models/elevator_door.obj");
     }
 
-    virtual void Spawn() override{
+    virtual void Spawn() override {
+        PhysEntity::Spawn();
+
+        m_shape = PhysicsWorld::ShapeFromMesh(m_model->GetMeshes()[0], false);
+        InitializeRigidbody(m_shape, 0.0f);
+
         m_initialDoorPosition = GetPos();
         m_opendoorPosition = m_initialDoorPosition + Vector(1, 0, 0);
         m_isMoving = false;
@@ -16,7 +21,21 @@ public:
         ToggleDoor();
     }
 
+    virtual void Clean() override {
+        PhysEntity::Clean();
+
+        delete m_shape;
+    }
+
+    virtual void Use(bool keydown) override {
+        if (keydown) {
+            ToggleDoor();
+        }
+    }
+
     virtual void FixedUpdate(float delta) override {
+        PhysEntity::FixedUpdate(delta);
+
         if (m_isMoving) {
             Vector target = m_isOpen ? m_opendoorPosition : m_initialDoorPosition;
             Vector direction = (target - GetPos()).normalized();
@@ -35,6 +54,7 @@ public:
     }
 
 private:
+    btCollisionShape* m_shape;
     bool m_isMoving = false;
     bool m_isOpen = false;
     const float m_doorSpeed = 1.0f;

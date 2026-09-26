@@ -10,6 +10,7 @@ typedef uint32_t EID;
 class Entity {
 public:
     static std::map<EID, Entity*> Entities;
+    static PhysicsWorld* World;
 
     Entity() {
         EID id = 0;
@@ -25,21 +26,36 @@ public:
         m_model = nullptr;
         m_id = id;
         m_pos = 0.0f;
-        m_angles = 0.0f;
+        m_rot = Quaternion();
         Entities[id] = this;
     }
 
     virtual ~Entity() {
+        if (m_spawned) {
+            Clean();
+        }
+
+        if (m_model) {
+            delete m_model;
+        }
+        
         Entities.erase(m_id);
     }
 
     EID GetID() const {return m_id;}
 
     virtual void SetPos(Vector pos) {m_pos = pos;}
-    Vector GetPos() const {return m_pos;}
+    virtual Vector GetPos() const {return m_pos;}
 
-    virtual void SetAngles(Vector angles) {m_angles = angles;}
-    Vector GetAngles() const {return m_angles;}
+    virtual void SetRot(Quaternion rot) {m_rot = rot;}
+    virtual Quaternion GetRot() const {return m_rot;}
+
+    virtual void SetAngles(Vector angles) {
+        SetRot(Quaternion::fromEulerAngles(angles));
+    }
+    Vector GetAngles() const {
+        return GetRot().toEulerAngles();
+    }
 
     void Draw() {
         if (m_model) {
@@ -48,9 +64,14 @@ public:
     }
 
     // Called after the entity is created
-    virtual void Spawn() {}
+    virtual void Spawn() {m_spawned = true;}
     // Called before the entity is destroyed
-    virtual void Clean() {}
+    virtual void Clean() {m_spawned = false;}
+
+    // Called when the player presses/releases their use key while looking at the entity
+    virtual void Use(bool keydown) {}
+
+    bool IsSpawned() const {return m_spawned;}
 
     // Called every frame
     virtual void FrameUpdate(float delta) {}
@@ -58,12 +79,11 @@ public:
     virtual void FixedUpdate(float delta) {}
 
 protected:
-    static PhysicsWorld* World;
-
     Model* m_model;
 
 private:
     EID m_id;
+    bool m_spawned;
     Vector m_pos;
-    Vector m_angles;
+    Quaternion m_rot;
 };

@@ -1,6 +1,5 @@
 #include "window.h"
 #include "gl.h"
-#include "SDL3/SDL_error.h"
 #include "SDL3/SDL_video.h"
 #include <stdexcept>
 
@@ -26,6 +25,8 @@ Window::Window() {
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         throw std::runtime_error("Failed to initialize GLAD");
     }
+
+    m_mouseLocked = false;
 }
 
 Window::~Window() {
@@ -43,6 +44,7 @@ bool Window::Update() {
         case SDL_EVENT_WINDOW_RESIZED:
             glViewport(0, 0, event.window.data1, event.window.data2);
             m_renderer->Resize(event.window.data1, event.window.data2);
+            SetMouseLocked(m_mouseLocked);
             break;
         case SDL_EVENT_KEY_DOWN:
             m_input->SetActionState(event.key.scancode, true);
@@ -62,6 +64,9 @@ bool Window::Update() {
                 break;
             }
             break;
+        case SDL_EVENT_MOUSE_MOTION:
+            m_input->AddMouseDelta(event.motion.xrel, event.motion.yrel);
+            break;
         default:
             break;
         }
@@ -72,4 +77,21 @@ bool Window::Update() {
 
 void Window::SwapScreen() {
     SDL_GL_SwapWindow(m_window);
+}
+
+void Window::SetMouseLocked(bool locked) {
+    m_mouseLocked = locked;
+    if (locked) {
+        SDL_Rect rect;
+        rect.x = rect.y = 0;
+        SDL_GetWindowSize(m_window, &rect.w, &rect.h);
+        rect.x = rect.w >> 1;
+        rect.y = rect.h >> 1;
+        rect.w = 1;
+        rect.h = 1;
+        SDL_SetWindowMouseRect(m_window, &rect);
+    } else {
+        SDL_SetWindowMouseRect(m_window, NULL);
+    }
+    SDL_SetWindowRelativeMouseMode(m_window, locked);
 }

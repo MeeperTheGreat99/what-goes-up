@@ -11,6 +11,7 @@ public:
 
     bool Update();
     void SwapScreen();
+    void SetMouseLocked(bool locked);
 
     void SetRenderer(Renderer* renderer) {m_renderer = renderer;}
     void SetInput(Input* input) {m_input = input;}
@@ -18,6 +19,7 @@ public:
 private:
     SDL_Window* m_window;
     SDL_GLContext m_glContext;
+    bool m_mouseLocked;
     Renderer* m_renderer;
     Input* m_input;
 };

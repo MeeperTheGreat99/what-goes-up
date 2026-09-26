@@ -16,7 +16,10 @@ public:
 
     void Draw(bool ignoreMat);
 
+    const std::vector<Vertex>& GetVertices() const {return m_vertices;}
+
 private:
+    std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
     unsigned int m_vao, m_vbo, m_ebo;
     Material m_material;
@@ -24,11 +27,14 @@ private:
 
 class Model {
 public:
+    static void LoadErrorModel();
     static Model* LoadExternal(std::string filename);
 
     Model(const std::vector<Mesh*>& meshes);
 
     void Draw(bool ignoreMat = false);
+
+    const std::vector<Mesh*>& GetMeshes() const {return m_meshes;}
 
 private:
     struct ImportData {
@@ -37,6 +43,8 @@ private:
 
     static void ProcessNode(const aiScene* scene, aiNode* node, ImportData& id);
     static Texture* FetchTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
+
+    static Model* ErrorModel;
 
     std::vector<Mesh*> m_meshes;
 };

@@ -1,11 +1,13 @@
 #include "model.h"
 #include <assimp/postprocess.h>
 
+Model* Model::ErrorModel = nullptr;
+
 Mesh::Mesh(
     const std::vector<Vertex>& vertices,
     const std::vector<unsigned int>& indices,
     Material material
-) : m_indices(indices), m_material(material) {
+) : m_vertices(vertices), m_indices(indices), m_material(material) {
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
@@ -54,6 +56,13 @@ void Mesh::Draw(bool ignoreMat) {
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
 
+void Model::LoadErrorModel() {
+    ErrorModel = LoadExternal("res/models/error.obj");
+    if (!ErrorModel) {
+        throw std::runtime_error("could not load error model");
+    }
+}
+
 Model* Model::LoadExternal(std::string filename) {
     Assimp::Importer* imp = new Assimp::Importer();
 
@@ -66,7 +75,7 @@ Model* Model::LoadExternal(std::string filename) {
     );
 
     if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-        return nullptr;
+        return ErrorModel;
     }
 
     ImportData id;

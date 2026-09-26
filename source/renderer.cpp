@@ -1,7 +1,6 @@
 #include "renderer.h"
 #include "entity.h"
 #include "gl.h"
-#include "model.h"
 #include "shader.h"
 #include "terrain.h"
 #include "texture.h"
@@ -74,13 +73,13 @@ Renderer::Renderer() {
     m_textShader = new TextShader();
     m_textShader->Finalize();
     
-    m_font = Font::Load("res/fonts/raleway.ttf");
+    // m_font = Font::Load("res/fonts/raleway.ttf");
     
     m_camera = nullptr;    
 }
 
 Renderer::~Renderer() {
-    delete m_font;
+    // delete m_font;
     delete m_textShader;
     delete m_screenShader;
     delete m_terrainShader;
@@ -115,14 +114,13 @@ void Renderer::Draw() {
 
     for (auto& entry : Entity::Entities) {
         Entity* entity = entry.second;
-        Vector angles = entity->GetAngles();
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
-        model *= glm::eulerAngleYXZ(angles.y, angles.x, angles.z);
-        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), model);
-        entity->Draw();
+        if (entity->IsSpawned()) {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
+            model *= glm::mat4_cast(entity->GetRot().gl());
+            m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), model);
+            entity->Draw();
+        }
     }
-
-    m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), glm::mat4(1.0f));
     
     glDisable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -134,7 +132,7 @@ void Renderer::Draw() {
     glBindVertexArray(m_screenVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    DrawText("stupid text", nullptr, 16, 0, 0);
+    // DrawText("stupid text", nullptr, 16, 0, 0);
 
     glEnable(GL_DEPTH_TEST);
 }

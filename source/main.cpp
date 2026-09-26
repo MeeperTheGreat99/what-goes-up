@@ -1,11 +1,11 @@
 #include "accept.h"
 #include "clock.h"
-#include "entities/evelator.h"
-#include "entity.h"
+#include "player.h"
+#include "world.h"
+#include "evelator.h"
 #include "input.h"
 #include "physics.h"
 #include "renderer.h"
-#include "rubik.h"
 #include "window.h"
 #include <SDL3/SDL_main.h>
 #include <exception>
@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
         renderer = new Renderer();
         input = new Input();
         physics = new PhysicsWorld();
+        Model::LoadErrorModel();
     } catch (const std::exception& e) {
         reportException(e);
         SDL_Quit();
@@ -42,14 +43,22 @@ int main(int argc, char* argv[]) {
 
     window->SetRenderer(renderer);
     window->SetInput(input);
+    Entity::World = physics;
 
-    Camera cam;
-    cam.SetPos(Vector(0, 0, 5));
-    cam.SetAng(Vector(0, 90, 0));
-    renderer->SetCamera(&cam);
+    window->SetMouseLocked(true);
 
-    // Rubik* rubik = new Rubik();
+    Player* player = new Player();
+    player->SetInput(input);
+    player->SetPos(Vector(0, 2, 15));
+    player->SetAngles(Vector(0, 90, 0));
+    player->Spawn();
+    renderer->SetCamera(&player->GetCamera());
+
+    World* world = new World();
+    world->Spawn();
+
     Evelator* evelator = new Evelator();
+    evelator->SetPos(Vector(0, 0, -3));
     evelator->Spawn();
 
     Clock clock;
@@ -57,29 +66,33 @@ int main(int argc, char* argv[]) {
     constexpr float logicPeriod = 1.0f / 60.0f;
     while (window->Update()) {
         float time = clock.GetElapsedTime();
-        float delta = time - last;
+        float delta = std::min(0.1f, time - last);
         accumulator += delta;
 
         while (accumulator >= logicPeriod) {
             physics->Update(logicPeriod);
             for (auto& entry : Entity::Entities) {
                 Entity* entity = entry.second;
-                entity->FixedUpdate(logicPeriod);
+                if (entity->IsSpawned()) {
+                    entity->FixedUpdate(logicPeriod);
+                }
             }
 
+            input->Update();
             accumulator -= logicPeriod;
         }
 
         for (auto& entry : Entity::Entities) {
             Entity* entity = entry.second;
-            entity->FrameUpdate(delta);
+            if (entity->IsSpawned()) {
+                entity->FrameUpdate(delta);
+            }
         }
 
         last = time;
 
         renderer->Draw();
         window->SwapScreen();
-        input->Update();
     }
 
     delete physics;

@@ -25,8 +25,12 @@ public:
 
     void Update();
     void SetActionState(int code, bool held);
+    void AddMouseDelta(float x, float y);
+    void GetMouseDelta(float& x, float& y);
     Action* CreateAction(int code);
 
 private:
     std::map<int, Action*> m_actions;
+    float m_mouseSens = 0.1f;
+    float m_mouseDX = 0.0f, m_mouseDY = 0.0f;
 };
