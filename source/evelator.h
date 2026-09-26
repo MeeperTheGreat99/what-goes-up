@@ -5,7 +5,7 @@ class Evelator : public PhysEntity {
 public:
 
     Evelator() {
-        m_model = Model::LoadExternal("res/models/elevator_door.obj");
+        m_model = Model::LoadExternal("res/models/elevator.obj");
     }
 
     virtual void Spawn() override {
