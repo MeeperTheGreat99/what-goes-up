@@ -38,8 +38,8 @@ public:
     virtual void Clean() override {
         PhysEntity::Clean();
 
-        delete m_trShape;
-        delete m_shape;
+        PhysicsWorld::SafeDeleteShape(m_trShape);
+        PhysicsWorld::SafeDeleteShape(m_shape);
     }
 
     virtual void FrameUpdate(float delta) override {

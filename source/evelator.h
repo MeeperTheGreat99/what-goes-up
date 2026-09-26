@@ -3,15 +3,14 @@
 
 class Evelator : public PhysEntity {
 public:
-
     Evelator() {
-        m_model = Model::LoadExternal("res/models/elevator.obj");
+        m_model = Model::LoadExternal("res/models/elevator.fbx");
     }
 
     virtual void Spawn() override {
         PhysEntity::Spawn();
 
-        m_shape = PhysicsWorld::ShapeFromMesh(m_model->GetMeshes()[0], false);
+        m_shape = PhysicsWorld::ShapeFromModel(m_model, false);
         InitializeRigidbody(m_shape, 0.0f);
 
         m_initialDoorPosition = GetPos();
@@ -24,7 +23,7 @@ public:
     virtual void Clean() override {
         PhysEntity::Clean();
 
-        delete m_shape;
+        PhysicsWorld::SafeDeleteShape(m_shape);
     }
 
     virtual void Use(bool keydown) override {

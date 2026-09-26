@@ -19,6 +19,7 @@ public:
     Material GetMaterial() const {return m_material;}
 
     const std::vector<Vertex>& GetVertices() const {return m_vertices;}
+    const std::vector<unsigned int>& GetIndices() const {return m_indices;}
 
 private:
     std::vector<Vertex> m_vertices;
