@@ -111,7 +111,7 @@ public:
     }
 
     Vector GetHeadPos() {
-        return GetPos() + CollisionHeight * 0.5f + Vector(0.0f, ViewOfs, 0.0f);
+        return GetPos() + Vector(0.0f, CollisionHeight * 0.5f + ViewOfs, 0.0f);
     }
 
     void TryUse() {

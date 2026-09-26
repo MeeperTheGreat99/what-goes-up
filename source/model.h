@@ -1,5 +1,6 @@
 #pragma once
 #include "material.h"
+#include "shader.h"
 #include "vertex.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -14,7 +15,8 @@ public:
     );
     ~Mesh();
 
-    void Draw(bool ignoreMat);
+    void Draw(ObjectShader* shader);
+    Material GetMaterial() const {return m_material;}
 
     const std::vector<Vertex>& GetVertices() const {return m_vertices;}
 
@@ -32,7 +34,7 @@ public:
 
     Model(const std::vector<Mesh*>& meshes);
 
-    void Draw(bool ignoreMat = false);
+    void Draw(ObjectShader* shader = nullptr);
 
     const std::vector<Mesh*>& GetMeshes() const {return m_meshes;}
 

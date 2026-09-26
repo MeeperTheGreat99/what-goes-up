@@ -1,10 +1,10 @@
 #pragma once
-#include "gl.h"
 #include <string>
 
 class Texture {
 public:
     static Texture* GetDefault();
+    static Texture* GetWhite();
     static Texture* Load(std::string filename, bool srgb, bool repeat = false);
     static Texture* LoadMemory(unsigned char* data, size_t size, bool srgb, bool repeat = false);
 
@@ -18,6 +18,7 @@ public:
 
 private:
     static Texture* DefaultTexture;
+    static Texture* WhiteTexture;
     
     int m_width, m_height;
     unsigned int m_texture;

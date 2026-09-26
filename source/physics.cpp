@@ -96,3 +96,13 @@ PhysicsWorld::~PhysicsWorld() {
 void PhysicsWorld::Update(float delta) {
     world->stepSimulation(delta, 0, delta);
 }
+
+void PhysicsWorld::SetDebugger(PhysDebugger* debugger) {
+    debugger->setDebugMode(
+        btIDebugDraw::DBG_DrawWireframe |
+        btIDebugDraw::DBG_DrawText |
+        btIDebugDraw::DBG_DrawFeaturesText |
+        btIDebugDraw::DBG_DrawNormals
+    );
+    world->setDebugDrawer(debugger);
+}

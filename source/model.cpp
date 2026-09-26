@@ -1,4 +1,5 @@
 #include "model.h"
+#include "gl.h"
 #include <assimp/postprocess.h>
 
 Model* Model::ErrorModel = nullptr;
@@ -37,19 +38,20 @@ Mesh::~Mesh() {
     glDeleteBuffers(1, &m_ebo);
 }
 
-void Mesh::Draw(bool ignoreMat) {
-    if (!ignoreMat) {
-        if (m_material.flags & MATERIAL_FLAG_ALBEDO_TEXTURE) {
-            m_material.albedo.texture->Use(0);
-        }
-        
-        if (m_material.normal) {
-            m_material.normal->Use(1);
-        }
-        
-        if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
-            m_material.specular.texture->Use(2);
-        }
+void Mesh::Draw(ObjectShader* shader) {
+    if (m_material.flags & MATERIAL_FLAG_ALBEDO_TEXTURE) {
+        m_material.albedo.texture->Use(0);
+    } else {
+        Texture::GetWhite()->Use(0);
+        shader->SetAlbedoColor(m_material.albedo.color.gl());
+    }
+    
+    if (m_material.normal) {
+        m_material.normal->Use(1);
+    }
+    
+    if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
+        m_material.specular.texture->Use(2);
     }
 
     glBindVertexArray(m_vao);
@@ -75,20 +77,23 @@ Model* Model::LoadExternal(std::string filename) {
     );
 
     if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        delete imp;
         return ErrorModel;
     }
 
     ImportData id;
     ProcessNode(scene, scene->mRootNode, id);
 
+    delete imp;
+
     return new Model(id.meshes);
 }
 
 Model::Model(const std::vector<Mesh*>& meshes) : m_meshes(meshes) {}
 
-void Model::Draw(bool ignoreMat) {
+void Model::Draw(ObjectShader* shader) {
     for (Mesh* mesh : m_meshes) {
-        mesh->Draw(ignoreMat);
+        mesh->Draw(shader);
     }
 }
 
@@ -129,6 +134,10 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
         if (albedo) {
             mat.albedo.texture = albedo;
             mat.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
+        } else {
+            aiColor4D color;
+            material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+            mat.albedo.color = Vector(color.r, color.g, color.b);
         }
 
         id.meshes.push_back(new Mesh(vertices, indices, mat));
@@ -164,5 +173,5 @@ Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextu
         }
     }
 
-    return Texture::GetDefault();
+    return nullptr;
 }

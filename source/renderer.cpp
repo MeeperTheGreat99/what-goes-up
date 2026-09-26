@@ -2,7 +2,6 @@
 #include "entity.h"
 #include "gl.h"
 #include "shader.h"
-#include "terrain.h"
 #include "texture.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
@@ -22,6 +21,11 @@ static float quadVertices[] = {
     1.0f, 1.0f, 1.0f, 1.0f,
 };
 
+static float lineVertices[] = {
+    0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+};
+
 Renderer::Renderer() {
     m_width = 800;
     m_height = 600;
@@ -34,38 +38,42 @@ Renderer::Renderer() {
 
     glGenVertexArrays(1, &m_screenVAO);
     glBindVertexArray(m_screenVAO);
-
     glGenBuffers(1, &m_screenVBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_screenVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(screenVertices), screenVertices, GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
-    
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
     glGenVertexArrays(1, &m_quadVAO);
     glBindVertexArray(m_quadVAO);
-
     glGenBuffers(1, &m_quadVBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
-    
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
+    glGenVertexArrays(1, &m_lineVAO);
+    glBindVertexArray(m_lineVAO);
+    glGenBuffers(1, &m_lineVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_lineVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(sizeof(float) * 3));
+
     CreateFramebuffers();
 
-    m_objectShader = new Shader("res/shaders/object.vs", "res/shaders/object.fs");
-    m_objectShader->Finalize();
+    m_lineShader = new LineShader();
+    m_lineShader->Finalize();
 
-    m_terrainShader = new Shader("res/shaders/object.vs", "res/shaders/terrain.fs");
-    m_terrainShader->Define(Shader::Constant("TERRAIN_DEPTH", Terrain::kDepthConstant));
-    m_terrainShader->Finalize();
+    m_objectShader = new ObjectShader();
+    m_objectShader->Finalize();
+    m_objectShader->SetAlbedoTex(0);
     
     m_screenShader = new Shader("res/shaders/screen.vs", "res/shaders/screen.fs");
     m_screenShader->Finalize();
@@ -82,8 +90,8 @@ Renderer::~Renderer() {
     // delete m_font;
     delete m_textShader;
     delete m_screenShader;
-    delete m_terrainShader;
     delete m_objectShader;
+    delete m_lineShader;
 
     glBindVertexArray(0);
     glDeleteBuffers(1, &m_quadVBO);
@@ -104,11 +112,12 @@ void Renderer::SetCamera(Camera* camera) {
 void Renderer::Draw() {
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     m_objectShader->Use();
-    Vector camPos;
+
     if (m_camera) {
-        camPos = m_camera->GetPos();
-        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Proj"), m_camera->GetProj());
+        m_objectShader->SetProj(m_camera->GetProj());
+        m_objectShader->SetView(m_camera->GetView());
         m_objectShader->SetUniform(m_objectShader->GetUniformLocation("View"), m_camera->GetView());
     }
 
@@ -117,8 +126,8 @@ void Renderer::Draw() {
         if (entity->IsSpawned()) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
             model *= glm::mat4_cast(entity->GetRot().gl());
-            m_objectShader->SetUniform(m_objectShader->GetUniformLocation("Model"), model);
-            entity->Draw();
+            m_objectShader->SetModel(model);
+            entity->Draw(m_objectShader);
         }
     }
     
@@ -126,6 +135,7 @@ void Renderer::Draw() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
+
     m_screenShader->Use();
     m_screenShader->SetUniform(m_screenShader->GetUniformLocation("textie"), 0);
 
@@ -135,6 +145,21 @@ void Renderer::Draw() {
     // DrawText("stupid text", nullptr, 16, 0, 0);
 
     glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DrawLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
+    glBindVertexArray(m_lineVAO);
+    memcpy(&lineVertices[0], &start, sizeof(glm::vec3));
+    memcpy(&lineVertices[3], &color, sizeof(glm::vec3));
+    memcpy(&lineVertices[6], &end, sizeof(glm::vec3));
+    memcpy(&lineVertices[9], &color, sizeof(glm::vec3));
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(lineVertices), lineVertices);
+    
+    m_lineShader->Use();
+    m_lineShader->SetProj(m_camera ? m_camera->GetProj() : glm::mat4(1.0f));
+    m_lineShader->SetView(m_camera ? m_camera->GetView() : glm::mat4(1.0f));
+
+    glDrawArrays(GL_LINES, 0, 2);
 }
 
 void Renderer::DrawText(const char* text, Font* font, int size, int x, int y, glm::vec4 color, TextJustify just) {

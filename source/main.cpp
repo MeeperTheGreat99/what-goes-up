@@ -1,5 +1,6 @@
 #include "accept.h"
 #include "clock.h"
+#include "physdebugger.h"
 #include "player.h"
 #include "world.h"
 #include "evelator.h"
@@ -29,11 +30,13 @@ int main(int argc, char* argv[]) {
     Renderer* renderer = nullptr;
     Input* input = nullptr;
     PhysicsWorld* physics = nullptr;
+    PhysDebugger* physicsDebugger = nullptr;
     try {
         window = new Window();
         renderer = new Renderer();
         input = new Input();
         physics = new PhysicsWorld();
+        physicsDebugger = new PhysDebugger(renderer);
         Model::LoadErrorModel();
     } catch (const std::exception& e) {
         reportException(e);
@@ -43,6 +46,7 @@ int main(int argc, char* argv[]) {
 
     window->SetRenderer(renderer);
     window->SetInput(input);
+    // physics->SetDebugger(physicsDebugger);
     Entity::World = physics;
 
     window->SetMouseLocked(true);
@@ -95,6 +99,7 @@ int main(int argc, char* argv[]) {
         window->SwapScreen();
     }
 
+    delete physicsDebugger;
     delete physics;
     delete input;
     delete renderer;

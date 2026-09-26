@@ -1,8 +1,10 @@
 #include "texture.h"
+#include "gl.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 Texture* Texture::DefaultTexture = nullptr;
+Texture* Texture::WhiteTexture = nullptr;
 
 Texture* Texture::GetDefault() {
     if (!DefaultTexture) {
@@ -28,6 +30,17 @@ Texture* Texture::GetDefault() {
     }
 
     return DefaultTexture;
+}
+
+Texture* Texture::GetWhite() {
+    if (!WhiteTexture) {
+        unsigned char* image = new unsigned char[2*2*3];
+        memset(image, 255, 2*2*3);
+        WhiteTexture = new Texture(2, 2, 3, image, false, false);
+        delete[] image;
+    }
+
+    return WhiteTexture;
 }
 
 Texture* Texture::Load(std::string filename, bool srgb, bool repeat) {

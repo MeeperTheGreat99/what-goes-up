@@ -32,6 +32,7 @@ public:
     int GetUniformLocation(std::string uniform);
     void SetUniform(int location, int value);
     void SetUniform(int location, glm::vec2 value);
+    void SetUniform(int location, glm::vec3 value);
     void SetUniform(int location, glm::vec4 value);
     void SetUniform(int location, glm::mat4 value);
 
@@ -47,6 +48,29 @@ private:
     int LoadShader(std::string path, int type);
     void CompileShader(int shader);
     void LinkProgram(int program);
+};
+
+class LineShader : public Shader {
+public:
+    LineShader() : Shader("res/shaders/line.vs", "res/shaders/line.fs") {}
+
+    void SetProj(glm::mat4 proj) {
+        SetUniform(m_uProj, proj);
+    }
+
+    void SetView(glm::mat4 view) {
+        SetUniform(m_uView, view);
+    }
+
+protected:
+    int m_uProj;
+    int m_uView;
+
+    virtual void Load() override {
+        Shader::Load();
+        m_uProj = GetUniformLocation("Proj");
+        m_uView = GetUniformLocation("View");
+    }
 };
 
 class TextShader : public Shader {
@@ -75,5 +99,46 @@ protected:
         m_uPosition = GetUniformLocation("position");
         m_uScale = GetUniformLocation("scale");
         m_uColor = GetUniformLocation("color");
+    }
+};
+
+class ObjectShader : public Shader {
+public:
+    ObjectShader() : Shader("res/shaders/object.vs", "res/shaders/object.fs") {}
+
+    void SetProj(glm::mat4 proj) {
+        SetUniform(m_uProj, proj);
+    }
+
+    void SetView(glm::mat4 view) {
+        SetUniform(m_uView, view);
+    }
+
+    void SetModel(glm::mat4 model) {
+        SetUniform(m_uModel, model);
+    }
+
+    void SetAlbedoTex(int slot) {
+        SetUniform(m_uAlbedoSlot, slot);
+    }
+
+    void SetAlbedoColor(glm::vec3 color) {
+        SetUniform(m_uAlbedoColor, color);
+    }
+
+protected:
+    int m_uProj;
+    int m_uView;
+    int m_uModel;
+    int m_uAlbedoSlot;
+    int m_uAlbedoColor;
+
+    virtual void Load() override {
+        Shader::Load();
+        m_uProj = GetUniformLocation("Proj");
+        m_uView = GetUniformLocation("View");
+        m_uModel = GetUniformLocation("Model");
+        m_uAlbedoSlot = GetUniformLocation("tex_albedo");
+        m_uAlbedoColor = GetUniformLocation("albedo");
     }
 };

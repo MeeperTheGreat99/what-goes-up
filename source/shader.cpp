@@ -46,6 +46,10 @@ void Shader::SetUniform(int location, glm::vec2 value) {
     glUniform2fv(location, 1, &value[0]);
 }
 
+void Shader::SetUniform(int location, glm::vec3 value) {
+    glUniform3fv(location, 1, &value[0]);
+}
+
 void Shader::SetUniform(int location, glm::vec4 value) {
     glUniform4fv(location, 1, &value[0]);
 }
@@ -64,6 +68,7 @@ void Shader::Load() {
     LinkProgram(m_program);
     glDeleteShader(vert);
     glDeleteShader(frag);
+    Use();
 }
 
 void Shader::Unload() {

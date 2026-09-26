@@ -1,5 +1,6 @@
 #pragma once
 #include "model.h"
+#include "physdebugger.h"
 #include <btBulletDynamicsCommon.h>
 
 class Entity;
@@ -24,7 +25,7 @@ public:
     ~PhysicsWorld();
 
     void Update(float delta);
-
+    void SetDebugger(PhysDebugger* debugger);
 
     btDynamicsWorld* world;
 

@@ -57,9 +57,9 @@ public:
         return GetRot().toEulerAngles();
     }
 
-    void Draw() {
+    void Draw(ObjectShader* shader) {
         if (m_model) {
-            m_model->Draw();
+            m_model->Draw(shader);
         }
     }
 
