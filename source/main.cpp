@@ -1,5 +1,6 @@
 #include "accept.h"
 #include "clock.h"
+#include "entities/evelator.h"
 #include "entity.h"
 #include "input.h"
 #include "physics.h"
@@ -47,7 +48,9 @@ int main(int argc, char* argv[]) {
     cam.SetAng(Vector(0, 90, 0));
     renderer->SetCamera(&cam);
 
-    Rubik* rubik = new Rubik();
+    // Rubik* rubik = new Rubik();
+    Evelator* evelator = new Evelator();
+    evelator->Spawn();
 
     Clock clock;
     float accumulator = 0.0f, last = 0.0f;
