@@ -10,6 +10,16 @@ public:
     virtual void Spawn() override {
         PhysEntity::Spawn();
 
-        InitializeRigidbody(PhysicsWorld::ShapeFromMesh(m_model->GetMeshes()[0], false), 0.0f);
+        m_shape = PhysicsWorld::ShapeFromModel(m_model, true);
+        InitializeRigidbody(m_shape, 0.0f);
     }
+
+    virtual void Clean() override {
+        PhysEntity::Clean();
+
+        PhysicsWorld::SafeDeleteShape(m_shape);
+    }
+
+private:
+    btCollisionShape* m_shape;
 };

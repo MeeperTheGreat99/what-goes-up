@@ -136,8 +136,12 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
             mat.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
         } else {
             aiColor4D color;
-            material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-            mat.albedo.color = Vector(color.r, color.g, color.b);
+            if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS) {
+                mat.albedo.color = Vector(color.r, color.g, color.b);
+            } else {
+                mat.albedo.texture = Texture::GetDefault();
+                mat.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
+            }
         }
 
         id.meshes.push_back(new Mesh(vertices, indices, mat));
@@ -156,7 +160,7 @@ Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextu
         const aiTexture* texture = scene->GetEmbeddedTexture(texpath.C_Str());
         if (texture) {
             if (!texture->mHeight) {
-                return Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb);
+                return nullptr;//Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb);
             } else {
                 unsigned char* data = new unsigned char[texture->mWidth * texture->mHeight * 4];
                 for (int i = 0; i < texture->mWidth * texture->mHeight; i++) {
@@ -170,6 +174,8 @@ Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextu
                 delete[] data;
                 return created;
             }
+        } else {
+            return Texture::Load(texpath.C_Str(), srgb);
         }
     }
 

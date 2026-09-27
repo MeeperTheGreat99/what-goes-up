@@ -18,6 +18,8 @@ public:
     };
 
     static btCollisionShape* ShapeFromMesh(Mesh* mesh, bool complex);
+    static btCollisionShape* ShapeFromModel(Model* model, bool complex);
+    static void SafeDeleteShape(btCollisionShape* shape);
     static bool TraceLine(const Vector& start, const Vector& end, TraceResult& result, Entity* ignore = nullptr);
     static bool TraceShape(const Vector& start, const Vector& end, btCollisionShape* shape, TraceResult& result, Entity* ignore = nullptr);
 

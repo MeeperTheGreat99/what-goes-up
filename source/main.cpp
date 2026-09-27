@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     world->Spawn();
 
     Evelator* evelator = new Evelator();
-    evelator->SetPos(Vector(0, 0, -3));
+    evelator->SetPos(Vector(0, 0.2, -3));
     evelator->Spawn();
 
     Clock clock;
