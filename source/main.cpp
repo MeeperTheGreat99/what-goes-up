@@ -1,4 +1,5 @@
 #include "accept.h"
+#include "audio.h"
 #include "clock.h"
 #include "physdebugger.h"
 #include "player.h"
@@ -28,12 +29,14 @@ int main(int argc, char* argv[]) {
 
     Window* window = nullptr;
     Renderer* renderer = nullptr;
+    Audio* audio = nullptr;
     Input* input = nullptr;
     PhysicsWorld* physics = nullptr;
     PhysDebugger* physicsDebugger = nullptr;
     try {
         window = new Window();
         renderer = new Renderer();
+        audio = new Audio();
         input = new Input();
         physics = new PhysicsWorld();
         physicsDebugger = new PhysDebugger(renderer);
@@ -64,6 +67,14 @@ int main(int argc, char* argv[]) {
     Evelator* evelator = new Evelator();
     evelator->SetPos(Vector(0, 0.2, -3));
     evelator->Spawn();
+
+    Audio::Sample* sample = audio->LoadSample("res/sounds/environment/knock.wav");
+    Audio::Source* source = new Audio::Source(sample);
+    source->Set3D();
+    source->SetPos(Vector(-1, 1, 16));
+    source->Play();
+
+    audio->SetReverb(EFX_REVERB_PRESET_HANGAR);
 
     Clock clock;
     float accumulator = 0.0f, last = 0.0f;
@@ -102,6 +113,7 @@ int main(int argc, char* argv[]) {
     delete physicsDebugger;
     delete physics;
     delete input;
+    delete audio;
     delete renderer;
     delete window;
 

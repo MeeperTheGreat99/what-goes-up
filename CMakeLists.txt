@@ -21,6 +21,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/freetype/include
     ${CMAKE_SOURCE_DIR}/lib/msdfgen/include
     ${CMAKE_SOURCE_DIR}/lib/bullet/include
+    ${CMAKE_SOURCE_DIR}/lib/openal/include
 )
 target_link_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/SDL
@@ -28,5 +29,6 @@ target_link_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/freetype
     ${CMAKE_SOURCE_DIR}/lib/msdfgen
     ${CMAKE_SOURCE_DIR}/lib/bullet
+    ${CMAKE_SOURCE_DIR}/lib/openal
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3 opengl32 assimp freetype msdfgen-core LinearMath BulletCollision BulletDynamics)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3 opengl32 assimp freetype msdfgen-core LinearMath BulletCollision BulletDynamics OpenAL32)

@@ -1,4 +1,5 @@
 #pragma once
+#include "audio.h"
 #include "camera.h"
 #include "font.h"
 #include "shader.h"
@@ -36,6 +37,8 @@ public:
     void DrawText(const char* text, Font* font, int size, int x, int y, glm::vec4 color = glm::vec4(1.0f), TextJustify just = TextJustify());
     void Resize(unsigned int width, unsigned int height);
 
+    void SetAudio(Audio* audio) {m_audio = audio;}
+
 private:
     unsigned int m_width, m_height;
     unsigned int m_screenVAO, m_screenVBO;
@@ -49,6 +52,7 @@ private:
     TextShader* m_textShader;
     Camera* m_camera;
     Font* m_font;
+    Audio* m_audio;
 
     float XNDC(int x);
     float YNDC(int y);

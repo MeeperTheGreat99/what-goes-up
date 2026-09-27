@@ -83,7 +83,7 @@ Renderer::Renderer() {
     
     // m_font = Font::Load("res/fonts/raleway.ttf");
     
-    m_camera = nullptr;    
+    m_camera = nullptr;
 }
 
 Renderer::~Renderer() {
@@ -119,6 +119,7 @@ void Renderer::Draw() {
         m_objectShader->SetProj(m_camera->GetProj());
         m_objectShader->SetView(m_camera->GetView());
         m_objectShader->SetUniform(m_objectShader->GetUniformLocation("View"), m_camera->GetView());
+        m_audio->SetListenerPos(m_camera->GetPos());
     }
 
     for (auto& entry : Entity::Entities) {
