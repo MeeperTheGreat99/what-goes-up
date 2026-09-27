@@ -1,6 +1,7 @@
 #include "accept.h"
 #include "audio.h"
 #include "clock.h"
+#include "meshentity.h"
 #include "physdebugger.h"
 #include "player.h"
 #include "world.h"
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
 
     Player* player = new Player();
     player->SetInput(input);
-    player->SetPos(Vector(0, 2, 15));
+    player->SetPos(Vector(0, 1, 15));
     player->SetAngles(Vector(0, 90, 0));
     player->Spawn();
     renderer->SetCamera(&player->GetCamera());
@@ -71,13 +72,18 @@ int main(int argc, char* argv[]) {
     evelator->SetPos(Vector(0, 0.2, -3));
     evelator->Spawn();
 
-    Audio::Sample* sample = audio->LoadSample("res/sounds/environment/knock.wav");
+    MeshEntity* phone = new MeshEntity();
+    phone->SetModelFilename("res/models/phone.obj", true);
+    phone->SetPos(player->GetPos() + Vector(0, 0, -1));
+    phone->Spawn();
+
+    Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
     Audio::Source* source = new Audio::Source(sample);
     source->Set3D();
-    source->SetPos(Vector(-1, 1, 16));
+    source->SetPos(phone->GetPos());
     source->Play();
 
-    audio->SetReverb(EFX_REVERB_PRESET_QUARRY);
+    audio->SetReverb(EFX_REVERB_PRESET_ROOM);
 
     Clock clock;
     float accumulator = 0.0f, last = 0.0f;
