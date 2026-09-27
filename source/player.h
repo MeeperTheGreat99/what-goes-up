@@ -1,10 +1,15 @@
 #pragma once
+#include "Item.h"
 #include "camera.h"
 #include "input.h"
 #include "physentity.h"
 
 class Player : public PhysEntity {
 public:
+    struct {
+        std::vector <Item*> items;
+    } inventory;
+
     static constexpr float Friction = 8.0f;
     static constexpr float MaxSpeed = 8.0f;
     static constexpr float Reach = 2.0f;
