@@ -16,4 +16,7 @@ struct Material {
         Texture* texture;
         float value = 0.5f;
     } specular;
+    float reflectivity = 0.0f;
+
+    static bool Load(std::string filename, Material& out);
 };

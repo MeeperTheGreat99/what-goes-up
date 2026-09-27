@@ -24,7 +24,7 @@ Mesh::Mesh(
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
@@ -41,6 +41,7 @@ Mesh::~Mesh() {
 void Mesh::Draw(ObjectShader* shader) {
     if (m_material.flags & MATERIAL_FLAG_ALBEDO_TEXTURE) {
         m_material.albedo.texture->Use(0);
+        shader->SetAlbedoColor(glm::vec3(1.0f));
     } else {
         Texture::GetWhite()->Use(0);
         shader->SetAlbedoColor(m_material.albedo.color.gl());

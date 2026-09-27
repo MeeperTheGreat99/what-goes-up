@@ -74,9 +74,16 @@ Renderer::Renderer() {
     m_objectShader = new ObjectShader();
     m_objectShader->Finalize();
     m_objectShader->SetAlbedoTex(0);
+
+    m_lightShader = new LightShader();
+    m_lightShader->Finalize();
+    m_lightShader->SetPositionTex(0);
+    m_lightShader->SetNormalTex(1);
+    m_lightShader->SetAlbedoSpecTex(2);
     
     m_screenShader = new Shader("res/shaders/screen.vs", "res/shaders/screen.fs");
     m_screenShader->Finalize();
+    m_screenShader->SetUniform(m_screenShader->GetUniformLocation("textie"), 0);
 
     m_textShader = new TextShader();
     m_textShader->Finalize();
@@ -90,6 +97,7 @@ Renderer::~Renderer() {
     // delete m_font;
     delete m_textShader;
     delete m_screenShader;
+    delete m_lightShader;
     delete m_objectShader;
     delete m_lineShader;
 
@@ -133,15 +141,32 @@ void Renderer::Draw() {
         }
     }
     
+    m_pingPongState = false;
     glDisable(GL_DEPTH_TEST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
+
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[1]);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
 
-    m_screenShader->Use();
-    m_screenShader->SetUniform(m_screenShader->GetUniformLocation("textie"), 0);
+    m_lightShader->Use();
+    // clear all lights
+    for (int i = 0; i < 32; i++) {
+        m_lightShader->SetLight(i, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f);
+    }
+    m_lightShader->SetLight(0, glm::vec3(0.0f), glm::vec3(1.0f, 0.1f, 0.1f), 10.0f);
 
     glBindVertexArray(m_screenVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    m_screenShader->Use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[m_pingPongState]);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     // DrawText("stupid text", nullptr, 16, 0, 0);
@@ -244,6 +269,17 @@ void Renderer::CreateFramebuffers() {
     glBindRenderbuffer(GL_RENDERBUFFER, m_gBufferDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_width, m_height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_gBufferDepth);
+
+    glGenFramebuffers(2, m_pingPongFBO);
+    for (int i = 0; i < 2; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[i]);
+        glGenTextures(1, &m_pingPongTextures[i]);
+        glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pingPongTextures[i], 0);
+    }
 }
 
 void Renderer::DeleteFramebuffers() {

@@ -7,5 +7,9 @@ uniform sampler2D textie;
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(texture(textie, Coord).rgb, 1.0);
+    const float gamma = 2.2;
+    vec3 color = texture(textie, Coord).rgb;
+    vec3 mapped = color / (color + vec3(1.0));
+    mapped = pow(mapped, vec3(1.0 / gamma));
+    FragColor = vec4(mapped, 1.0);
 }

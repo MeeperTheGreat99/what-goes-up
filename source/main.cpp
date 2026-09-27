@@ -1,6 +1,8 @@
 #include "accept.h"
 #include "audio.h"
 #include "clock.h"
+#include "mapper/mapconvert.h"
+#include "mapper/map2mesh.h"
 #include "meshentity.h"
 #include "physdebugger.h"
 #include "player.h"
@@ -13,6 +15,7 @@
 #include <SDL3/SDL_main.h>
 #include <ctime>
 #include <exception>
+#include <fstream>
 
 #define CON
 #ifdef CON
@@ -76,6 +79,32 @@ int main(int argc, char* argv[]) {
     phone->SetModelFilename("res/models/phone.obj", true);
     phone->SetPos(player->GetPos() + Vector(0, 0, -1));
     phone->Spawn();
+
+    std::ifstream file("res/maps/intro.map", std::ios::binary);
+    file.seekg(0, std::ios::end);
+    size_t size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    char* data = new char[size];
+    file.read((char*)data, size);
+    file.close();
+
+    MapConvert* map = new MapConvert(data, size);
+    delete[] data;
+    if (!map->Convert()) {
+        printf("FUUUUUCK!\n");
+        while(true);
+    }
+
+    for (MapEnt* ent : map->GetEntities()) {
+        Model* model = MapEntToMesh(ent);
+        if (model) {
+            MeshEntity* mesh = new MeshEntity();
+            mesh->SetModel(model, false);
+            mesh->Spawn();
+        }
+    }
+
+    delete map;
 
     Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
     Audio::Source* source = new Audio::Source(sample);

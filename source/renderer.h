@@ -46,8 +46,12 @@ private:
     unsigned int m_lineVAO, m_lineVBO;
     unsigned int m_gBuffer, m_gBufferDepth;
     unsigned int m_gBufferTextures[3];
+    unsigned int m_pingPongFBO[2];
+    unsigned int m_pingPongTextures[2];
+    bool m_pingPongState;
     LineShader* m_lineShader;
     ObjectShader* m_objectShader;
+    LightShader* m_lightShader;
     Shader* m_screenShader;
     TextShader* m_textShader;
     Camera* m_camera;

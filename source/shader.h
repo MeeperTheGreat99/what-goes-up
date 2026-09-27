@@ -31,6 +31,7 @@ public:
 
     int GetUniformLocation(std::string uniform);
     void SetUniform(int location, int value);
+    void SetUniform(int location, float value);
     void SetUniform(int location, glm::vec2 value);
     void SetUniform(int location, glm::vec3 value);
     void SetUniform(int location, glm::vec4 value);
@@ -140,5 +141,48 @@ protected:
         m_uModel = GetUniformLocation("Model");
         m_uAlbedoSlot = GetUniformLocation("tex_albedo");
         m_uAlbedoColor = GetUniformLocation("albedo");
+    }
+};
+
+class LightShader : public Shader {
+public:
+    LightShader() : Shader("res/shaders/screen.vs", "res/shaders/light.fs") {}
+
+    void SetPositionTex(int slot) {
+        SetUniform(m_ugPosition, slot);
+    }
+
+    void SetNormalTex(int slot) {
+        SetUniform(m_ugNormal, slot);
+    }
+
+    void SetAlbedoSpecTex(int slot) {
+        SetUniform(m_ugAlbedoSpec, slot);
+    }
+
+    void SetLight(int index, glm::vec3 position, glm::vec3 color, float intensity) {
+        SetUniform(m_uLightPositions[index], position);
+        SetUniform(m_uLightColors[index], color);
+        SetUniform(m_uLightIntensities[index], intensity);
+    }
+
+protected:
+    int m_ugPosition;
+    int m_ugNormal;
+    int m_ugAlbedoSpec;
+    int m_uLightPositions[32];
+    int m_uLightColors[32];
+    int m_uLightIntensities[32];
+
+    virtual void Load() override {
+        Shader::Load();
+        m_ugPosition = GetUniformLocation("gPosition");
+        m_ugNormal = GetUniformLocation("gNormal");
+        m_ugAlbedoSpec = GetUniformLocation("gAlbedoSpec");
+        for (int i = 0; i < 32; i++) {
+            m_uLightPositions[i] = GetUniformLocation("lights[" + std::to_string(i) + "].position");
+            m_uLightColors[i] = GetUniformLocation("lights[" + std::to_string(i) + "].color");
+            m_uLightIntensities[i] = GetUniformLocation("lights[" + std::to_string(i) + "].intensity");
+        }
     }
 };

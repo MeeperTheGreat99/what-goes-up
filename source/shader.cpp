@@ -42,6 +42,10 @@ void Shader::SetUniform(int location, int value) {
     glUniform1i(location, value);
 }
 
+void Shader::SetUniform(int location, float value) {
+    glUniform1f(location, value);
+}
+
 void Shader::SetUniform(int location, glm::vec2 value) {
     glUniform2fv(location, 1, &value[0]);
 }

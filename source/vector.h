@@ -79,6 +79,10 @@ public:
         return *this;
     }
 
+    bool operator==(const Vector& other) const {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
     float length2() const {
         return x * x + y * y + z * z;
     }
