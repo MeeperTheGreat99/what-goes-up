@@ -72,6 +72,10 @@ int main(int argc, char* argv[]) {
     evelator->SetPos(Vector(0, 0.2, -3));
     evelator->Spawn();
 
+    PornUSB* pornUSB = new PornUSB();
+    pornUSB->SetPos(Vector(0, 0.5, -3));
+    pornUSB->Spawn();
+
     MeshEntity* phone = new MeshEntity();
     phone->SetModelFilename("res/models/phone.obj", true);
     phone->SetPos(player->GetPos() + Vector(0, 0, -1));

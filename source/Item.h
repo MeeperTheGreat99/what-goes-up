@@ -1,14 +1,22 @@
 #pragma once
 #include "model.h"
+#include "physentity.h"
 
-class Item {
-public: 
-    ~Item(){
-        delete m_model;
+class Item : public PhysEntity {
+public:
+    virtual void Spawn() override {
+        PhysEntity::Spawn();
+        m_shape = PhysicsWorld::ShapeFromModel(m_model, false);
+        InitializeRigidbody(m_shape, 1.0f);
+    }
+    virtual void Clean() override {
+        PhysEntity::Clean();
+        PhysicsWorld::SafeDeleteShape(m_shape);
     }
 protected:
-    Model* m_model = nullptr;
     std::string m_name = "";
+private:
+    btCollisionShape* m_shape = nullptr;
 }; 
 
 class PornUSB : public Item {
