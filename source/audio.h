@@ -17,6 +17,7 @@ public:
         Source(Sample* sample);
         ~Source();
 
+        void SetSample(Sample* sample);
         void Play();
         void Stop();
         void Set3D();
@@ -33,6 +34,7 @@ public:
 
     Sample* LoadSample(std::string filename);
     void SetListenerPos(Vector pos);
+    void SetListenerDir(Vector dir);
     void SetReverb(EFXEAXREVERBPROPERTIES reverb);
 
 private:

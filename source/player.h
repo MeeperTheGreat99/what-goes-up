@@ -32,6 +32,13 @@ public:
         m_jumpAction = m_input->CreateAction(SDL_SCANCODE_SPACE);
         m_useAction = m_input->CreateAction(SDL_SCANCODE_E);
 
+        for (int i = 0; i < 4; i++) {
+            m_stepSounds[i] = Audio::Instance->LoadSample("res/sounds/footsteps/step" + std::to_string(i + 1) + ".wav");
+        }
+
+        m_stepSource = new Audio::Source(m_stepSounds[0]);
+        m_stepSource->Set3D();
+
         m_shape = new btCapsuleShape(CollisionRadius, CollisionHeight - 2 * CollisionRadius);
         m_trShape = new btSphereShape(CollisionRadius - 0.02f);
         InitializeRigidbody(m_shape, Mass);
@@ -45,12 +52,16 @@ public:
 
         PhysicsWorld::SafeDeleteShape(m_trShape);
         PhysicsWorld::SafeDeleteShape(m_shape);
+
+        delete m_stepSource;
     }
 
     virtual void FrameUpdate(float delta) override {
         float mx, my;
 
         PhysEntity::FrameUpdate(delta);
+
+        m_stepSource->SetPos(GetPos());
 
         m_input->GetMouseDelta(mx, my);
         m_lookAngles += Vector(-my, -mx, 0.0f);
@@ -113,6 +124,18 @@ public:
         if (m_useAction->IsPressed()) {
             TryUse();
         }
+
+        if (onGround && Entity::WorldTime >= m_nextStepTime && velocity.length2() > 0.1f) {
+            int snd = rand() % 4;
+            for (int i = 0; i < rand() % 4; i++) {
+                snd = rand() % 4;
+            }
+            m_stepSource->Stop();
+            m_stepSource->SetSample(m_stepSounds[snd]);
+            m_stepSource->Play();
+            float time = std::clamp(MaxSpeed / velocity.length() * 0.4f, 0.4f, 0.55f);
+            m_nextStepTime = Entity::WorldTime + time;
+        }
     }
 
     Vector GetHeadPos() {
@@ -143,6 +166,9 @@ private:
     Input::Action* m_leftAction;
     Input::Action* m_jumpAction;
     Input::Action* m_useAction;
+    Audio::Sample* m_stepSounds[4];
+    Audio::Source* m_stepSource;
+    float m_nextStepTime;
     Camera m_camera;
     btCollisionShape* m_shape;
     btCollisionShape* m_trShape;

@@ -11,6 +11,7 @@ class Entity {
 public:
     static std::map<EID, Entity*> Entities;
     static PhysicsWorld* World;
+    static float WorldTime;
 
     Entity() {
         EID id = 0;

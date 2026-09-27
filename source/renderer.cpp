@@ -120,6 +120,7 @@ void Renderer::Draw() {
         m_objectShader->SetView(m_camera->GetView());
         m_objectShader->SetUniform(m_objectShader->GetUniformLocation("View"), m_camera->GetView());
         m_audio->SetListenerPos(m_camera->GetPos());
+        m_audio->SetListenerDir(m_camera->GetAng().direction());
     }
 
     for (auto& entry : Entity::Entities) {

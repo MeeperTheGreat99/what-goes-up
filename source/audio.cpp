@@ -18,6 +18,10 @@ Audio::Source::~Source() {
     alDeleteSources(1, &m_source);
 }
 
+void Audio::Source::SetSample(Sample* sample) {
+    alSourcei(m_source, AL_BUFFER, sample->buffer);
+}
+
 void Audio::Source::Play() {
     alSourcePlay(m_source);
 }
@@ -114,6 +118,11 @@ Audio::Sample* Audio::LoadSample(std::string filename) {
 
 void Audio::SetListenerPos(Vector pos) {
     alListener3f(AL_POSITION, pos.x, pos.y, pos.z);
+}
+
+void Audio::SetListenerDir(Vector dir) {
+    float orientation[6] = {dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f};
+    alListenerfv(AL_ORIENTATION, orientation);
 }
 
 void Audio::SetReverb(EFXEAXREVERBPROPERTIES reverb) {

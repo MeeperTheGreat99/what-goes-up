@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "window.h"
 #include <SDL3/SDL_main.h>
+#include <ctime>
 #include <exception>
 
 #define CON
@@ -18,6 +19,8 @@
 #endif
 
 int main(int argc, char* argv[]) {
+    srand(time(NULL));
+
     SDL_Init(SDL_INIT_VIDEO);
 
 #ifdef CON
@@ -74,7 +77,7 @@ int main(int argc, char* argv[]) {
     source->SetPos(Vector(-1, 1, 16));
     source->Play();
 
-    audio->SetReverb(EFX_REVERB_PRESET_HANGAR);
+    audio->SetReverb(EFX_REVERB_PRESET_QUARRY);
 
     Clock clock;
     float accumulator = 0.0f, last = 0.0f;
@@ -95,6 +98,7 @@ int main(int argc, char* argv[]) {
 
             input->Update();
             accumulator -= logicPeriod;
+            Entity::WorldTime += logicPeriod;
         }
 
         for (auto& entry : Entity::Entities) {
