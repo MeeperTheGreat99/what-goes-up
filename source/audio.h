@@ -21,6 +21,7 @@ public:
         void Play();
         void Stop();
         void Set3D();
+        void SetLoop(bool loop);
         void SetPos(Vector pos);
 
     private:

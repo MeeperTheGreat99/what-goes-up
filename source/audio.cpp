@@ -37,6 +37,10 @@ void Audio::Source::Set3D() {
     alSourcef(m_source, AL_REFERENCE_DISTANCE, 1.0f);
 }
 
+void Audio::Source::SetLoop(bool loop) {
+    alSourcei(m_source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+}
+
 void Audio::Source::SetPos(Vector pos) {
     alSource3f(m_source, AL_POSITION, pos.x, pos.y, pos.z);
 }
