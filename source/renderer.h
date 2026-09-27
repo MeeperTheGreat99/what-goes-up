@@ -2,7 +2,10 @@
 #include "audio.h"
 #include "camera.h"
 #include "font.h"
+#include "light.h"
+#include "model.h"
 #include "shader.h"
+#include <vector>
 
 struct TextJustify {
     enum class H {
@@ -28,6 +31,10 @@ struct TextJustify {
 
 class Renderer {
 public:
+    friend class Light;
+
+    static Renderer* Instance;
+
     Renderer();
     ~Renderer();
 
@@ -48,14 +55,18 @@ private:
     unsigned int m_gBufferTextures[3];
     unsigned int m_pingPongFBO[2];
     unsigned int m_pingPongTextures[2];
+    unsigned int m_pingPongDepth[2];
     bool m_pingPongState;
     LineShader* m_lineShader;
     ObjectShader* m_objectShader;
+    LightSphereShader* m_lightSphereShader;
     LightShader* m_lightShader;
     Shader* m_screenShader;
     TextShader* m_textShader;
-    Camera* m_camera;
+    Model* m_lightSphere;
+    std::vector<Light*> m_lights;
     Font* m_font;
+    Camera* m_camera;
     Audio* m_audio;
 
     float XNDC(int x);

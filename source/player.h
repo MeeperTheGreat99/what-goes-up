@@ -57,15 +57,9 @@ public:
     }
 
     virtual void FrameUpdate(float delta) override {
-        float mx, my;
-
         PhysEntity::FrameUpdate(delta);
 
         m_stepSource->SetPos(GetPos());
-
-        m_input->GetMouseDelta(mx, my);
-        m_lookAngles += Vector(-my, -mx, 0.0f);
-        m_lookAngles.x = std::clamp(m_lookAngles.x, -89.99f, 89.99f);
         m_camera.SetPos(GetHeadPos());
         m_camera.SetAng(m_lookAngles);
 
@@ -91,7 +85,13 @@ public:
     }
 
     virtual void FixedUpdate(float delta) override {
+        float mx, my;
+        
         PhysEntity::FixedUpdate(delta);
+
+        m_input->GetMouseDelta(mx, my);
+        m_lookAngles += Vector(-my, -mx, 0.0f);
+        m_lookAngles.x = std::clamp(m_lookAngles.x, -89.99f, 89.99f);
 
         Vector angles = Vector(0, m_lookAngles.y, 0);
         Vector forward = angles.direction();

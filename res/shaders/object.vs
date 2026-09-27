@@ -15,7 +15,7 @@ out vec2 Coord;
 void main() {
     mat4 PVM = Proj * View * Model;
     Position = vec3(Model * vec4(inPosition, 1.0));
-    Normal = vec3(Model * vec4(inNormal, 1.0));
+    Normal = transpose(inverse(mat3(Model))) * inNormal;
     Coord = inCoord;
     gl_Position = PVM * vec4(inPosition, 1.0);
 }

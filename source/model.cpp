@@ -39,20 +39,22 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Draw(ObjectShader* shader) {
-    if (m_material.flags & MATERIAL_FLAG_ALBEDO_TEXTURE) {
-        m_material.albedo.texture->Use(0);
-        shader->SetAlbedoColor(glm::vec3(1.0f));
-    } else {
-        Texture::GetWhite()->Use(0);
-        shader->SetAlbedoColor(m_material.albedo.color.gl());
-    }
-    
-    if (m_material.normal) {
-        m_material.normal->Use(1);
-    }
-    
-    if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
-        m_material.specular.texture->Use(2);
+    if (shader) {
+        if (m_material.flags & MATERIAL_FLAG_ALBEDO_TEXTURE) {
+            m_material.albedo.texture->Use(0);
+            shader->SetAlbedoColor(glm::vec3(1.0f));
+        } else {
+            Texture::GetWhite()->Use(0);
+            shader->SetAlbedoColor(m_material.albedo.color.gl());
+        }
+        
+        if (m_material.normal) {
+            m_material.normal->Use(1);
+        }
+        
+        if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
+            m_material.specular.texture->Use(2);
+        }
     }
 
     glBindVertexArray(m_vao);
@@ -72,9 +74,8 @@ Model* Model::LoadExternal(std::string filename) {
     const aiScene* scene = imp->ReadFile(
         filename.c_str(),
         aiProcess_Triangulate |
-        aiProcess_GenNormals |
-        aiProcess_CalcTangentSpace |
-        aiProcess_EmbedTextures
+        aiProcess_FlipUVs |
+        aiProcess_CalcTangentSpace
     );
 
     if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
@@ -117,7 +118,6 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
                 memcpy(&vertex.uv[0], &mesh->mTextureCoords[0][k].x, sizeof(float) * 2);
             }
 
-            vertex.uv[1] *= -1.0f;
             vertices.push_back(vertex);
         }
         

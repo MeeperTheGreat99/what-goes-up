@@ -6,6 +6,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
+Renderer* Renderer::Instance = nullptr;
+
 static float screenVertices[] = {
     -1.0f, 3.0f, 0.0f, 2.0f,
     -1.0f, -1.0f, 0.0f, 0.0f,
@@ -33,8 +35,8 @@ Renderer::Renderer() {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     glGenVertexArrays(1, &m_screenVAO);
     glBindVertexArray(m_screenVAO);
@@ -75,11 +77,17 @@ Renderer::Renderer() {
     m_objectShader->Finalize();
     m_objectShader->SetAlbedoTex(0);
 
+    m_lightSphereShader = new LightSphereShader();
+    m_lightSphereShader->Finalize();
+    m_lightSphereShader->SetPositionTex(0);
+    m_lightSphereShader->SetNormalTex(1);
+
     m_lightShader = new LightShader();
     m_lightShader->Finalize();
     m_lightShader->SetPositionTex(0);
     m_lightShader->SetNormalTex(1);
     m_lightShader->SetAlbedoSpecTex(2);
+    m_lightShader->SetLightTex(3);
     
     m_screenShader = new Shader("res/shaders/screen.vs", "res/shaders/screen.fs");
     m_screenShader->Finalize();
@@ -87,17 +95,23 @@ Renderer::Renderer() {
 
     m_textShader = new TextShader();
     m_textShader->Finalize();
+
+    m_lightSphere = Model::LoadExternal("res/models/light.obj");
     
-    // m_font = Font::Load("res/fonts/raleway.ttf");
+    m_font = Font::Load("res/fonts/raleway.ttf");
     
     m_camera = nullptr;
+
+    Instance = this;
 }
 
 Renderer::~Renderer() {
-    // delete m_font;
+    delete m_font;
+    delete m_lightSphere;
     delete m_textShader;
     delete m_screenShader;
     delete m_lightShader;
+    delete m_lightSphereShader;
     delete m_objectShader;
     delete m_lineShader;
 
@@ -118,6 +132,7 @@ void Renderer::SetCamera(Camera* camera) {
 }
 
 void Renderer::Draw() {
+    glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -140,9 +155,49 @@ void Renderer::Draw() {
             entity->Draw(m_objectShader);
         }
     }
-    
-    m_pingPongState = false;
+
+    // BEGIN DEFERRED LIGHTING PASS
+
     glDisable(GL_DEPTH_TEST);
+
+    m_pingPongState = false;
+    glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glCullFace(GL_FRONT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[1]);
+
+    m_lightSphereShader->Use();
+    m_lightSphereShader->SetResolution(glm::vec2((float)m_width, (float)m_height));
+    if (m_camera) {
+        m_lightSphereShader->SetProj(m_camera->GetProj());
+        m_lightSphereShader->SetView(m_camera->GetView());
+    }
+
+    for (Light* light : m_lights) {
+        float radius = sqrtf(light->GetIntensity() * 1024.0f);
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, light->GetPos().gl());
+        model = glm::scale(model, glm::vec3(radius));
+        m_lightSphereShader->SetModel(model);
+        m_lightSphereShader->SetLightPosition(light->GetPos().gl());
+        m_lightSphereShader->SetLightColor(light->GetColor().gl() * light->GetIntensity());
+        m_lightSphere->Draw();
+    }
+
+    glCullFace(GL_BACK);
+    glDisable(GL_BLEND);
+    m_pingPongState = !m_pingPongState;
+
+    // END DEFERRED LIGHTING PASS
+
+    // BEGIN LIGHTING PASS
+    
     glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
 
     glActiveTexture(GL_TEXTURE0);
@@ -151,16 +206,15 @@ void Renderer::Draw() {
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[1]);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[!m_pingPongState]);
 
     m_lightShader->Use();
-    // clear all lights
-    for (int i = 0; i < 32; i++) {
-        m_lightShader->SetLight(i, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f);
-    }
-    m_lightShader->SetLight(0, glm::vec3(0.0f), glm::vec3(1.0f, 0.1f, 0.1f), 10.0f);
 
     glBindVertexArray(m_screenVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // END LIGHTING PASS
 
     m_screenShader->Use();
     glActiveTexture(GL_TEXTURE0);
@@ -170,8 +224,6 @@ void Renderer::Draw() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     // DrawText("stupid text", nullptr, 16, 0, 0);
-
-    glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::DrawLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
@@ -271,18 +323,27 @@ void Renderer::CreateFramebuffers() {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_gBufferDepth);
 
     glGenFramebuffers(2, m_pingPongFBO);
+    glGenTextures(2, m_pingPongTextures);
+    glGenRenderbuffers(2, m_pingPongDepth);
     for (int i = 0; i < 2; i++) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[i]);
-        glGenTextures(1, &m_pingPongTextures[i]);
         glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pingPongTextures[i], 0);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, m_pingPongDepth[i]);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_width, m_height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_pingPongDepth[i]);
     }
 }
 
 void Renderer::DeleteFramebuffers() {
+    glDeleteRenderbuffers(2, m_pingPongDepth);
+    glDeleteTextures(2, m_pingPongTextures);
+    glDeleteFramebuffers(2, m_pingPongFBO);
+
     glDeleteRenderbuffers(1, &m_gBufferDepth);
     for (int i = 0; i < sizeof(m_gBufferTextures) / sizeof(m_gBufferTextures[0]); i++) {
         glDeleteTextures(1, &m_gBufferTextures[i]);

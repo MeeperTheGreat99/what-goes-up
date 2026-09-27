@@ -20,6 +20,7 @@
 #define CON
 #ifdef CON
 #include <Windows.h>
+#undef DrawText
 #endif
 
 int main(int argc, char* argv[]) {
@@ -83,6 +84,14 @@ int main(int argc, char* argv[]) {
     phone->SetModelFilename("res/models/phone.obj", true);
     phone->SetPos(player->GetPos() + Vector(0, 0, -1));
     phone->Spawn();
+
+    // create 100 lights in a random area around the player
+    for (int i = 0; i < 10; i++) {
+        Light* light = new Light();
+        light->SetPos(player->GetPos() + Vector(rand() % 20 - 10, rand() % 5, rand() % 20 - 10));
+        light->SetColor(Vector((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f));
+        light->SetIntensity((rand() % 100) / 150.0f);
+    }
 
     std::ifstream file("res/maps/intro.map", std::ios::binary);
     file.seekg(0, std::ios::end);
@@ -150,6 +159,8 @@ int main(int argc, char* argv[]) {
         last = time;
 
         renderer->Draw();
+        std::string fps = "FPS: " + std::to_string((int)(1.0f / delta));
+        renderer->DrawText(fps.c_str(), nullptr, 16, 0, 0);
         window->SwapScreen();
     }
 
