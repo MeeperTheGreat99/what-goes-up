@@ -41,7 +41,16 @@ void Map::Load(std::string name) {
 
     std::vector<MapEnt*> entData = converter->GetEntities();
     for (MapEnt* ent : entData) {
-        Entity* entity = Entity::Create(ent->properties["classname"]);
+        std::string classname = ent->properties["classname"];
+        if (classname == "light") {
+            Light* light = new Light();
+            light->SetPos(Vector::fromOrigin(ent->properties["origin"]));
+            light->SetColor(Vector::fromAngles(ent->properties["color"]));
+            light->SetIntensity(std::stof(ent->properties["intensity"]));
+            continue;
+        }
+
+        Entity* entity = Entity::Create(classname);
         if (!entity) {
             continue;
         }

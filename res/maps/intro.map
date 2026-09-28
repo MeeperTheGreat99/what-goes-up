@@ -28,3 +28,10 @@
 "mesh" "res/models/door_left.obj"
 "speed" "2"
 }
+// entity 3
+{
+"classname" "light"
+"origin" "-24 88 24"
+"color" "255 255 255 255"
+"intensity" "1"
+}

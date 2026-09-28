@@ -73,14 +73,6 @@ int main(int argc, char* argv[]) {
     phone->SetPos(player->GetPos() + Vector(0, -2, -1));
     phone->Spawn();
 
-    // create 100 lights in a random area around the player
-    for (int i = 0; i < 10; i++) {
-        Light* light = new Light();
-        light->SetPos(player->GetPos() + Vector(rand() % 20 - 10, rand() % 5, rand() % 20 - 10));
-        light->SetColor(Vector((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f));
-        light->SetIntensity((rand() % 100) / 150.0f);
-    }
-
     /* Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
     Audio::Source* source = new Audio::Source(sample);
     source->Set3D();
@@ -99,7 +91,7 @@ int main(int argc, char* argv[]) {
     seq->AddSample(audio->LoadSample("res/sounds/environment/punishment.wav"));
     seq->AddSample(audio->LoadSample("res/sounds/voicelines/carl.wav"));
     seq->AddSample(audio->LoadSample("res/sounds/environment/irm.wav"));
-    seq->Play();
+    // seq->Play();
 
     audio->SetReverb(EFX_REVERB_PRESET_ROOM);
 

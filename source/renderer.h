@@ -43,6 +43,7 @@ public:
     void DrawLine(glm::vec3 start, glm::vec3 end, glm::vec3 color);
     void DrawText(const char* text, Font* font, int size, int x, int y, glm::vec4 color = glm::vec4(1.0f), TextJustify just = TextJustify());
     void Resize(unsigned int width, unsigned int height);
+    void KillLights();
 
     void SetAudio(Audio* audio) {m_audio = audio;}
 

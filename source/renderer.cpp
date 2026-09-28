@@ -282,6 +282,13 @@ void Renderer::Resize(unsigned int width, unsigned int height) {
     RemakeFramebuffers();
 }
 
+void Renderer::KillLights() {
+    for (Light* light : m_lights) {
+        delete light;
+    }
+    m_lights.clear();
+}
+
 float Renderer::XNDC(int x) {
     return ((float)x / m_width) * 2.0f - 1.0f;
 }
