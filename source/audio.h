@@ -5,6 +5,7 @@
 #include <AL/efx-presets.h>
 #include <map>
 #include <string>
+#include <vector>
 
 class Audio {
 public:
@@ -20,12 +21,29 @@ public:
         void SetSample(Sample* sample);
         void Play();
         void Stop();
+        bool IsPlaying();
         void Set3D();
         void SetLoop(bool loop);
         void SetPos(Vector pos);
 
     private:
         unsigned int m_source;
+    };
+
+    class Sequence {
+    public:
+        Sequence(Source* source);
+        ~Sequence();
+
+        void Play();
+        void Stop();
+        void AddSample(Sample* sample);
+        void Update();
+        
+    private:
+        Source* m_source;
+        std::vector<Sample*> m_samples;
+        int m_index;
     };
 
     static Audio* Instance;

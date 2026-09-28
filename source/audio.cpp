@@ -8,9 +8,11 @@ Audio* Audio::Instance = nullptr;
 
 Audio::Source::Source(Audio::Sample* sample) {
     alGenSources(1, &m_source);
-    alSourcei(m_source, AL_BUFFER, sample->buffer);
     alSourcei(m_source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSource3i(m_source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+    if (sample) {
+        alSourcei(m_source, AL_BUFFER, sample->buffer);
+    }
     SetPos(0.0f);
 }
 
@@ -30,6 +32,14 @@ void Audio::Source::Stop() {
     alSourceStop(m_source);
 }
 
+bool Audio::Source::IsPlaying() {
+    ALint state;
+
+    alGetSourcei(m_source, AL_SOURCE_STATE, &state);
+
+    return state == AL_PLAYING;
+}
+
 void Audio::Source::Set3D() {
     alSource3i(m_source, AL_AUXILIARY_SEND_FILTER, Audio::Instance->m_reverbEffect, 0, AL_FILTER_NULL);
     alSourcei(m_source, AL_SOURCE_RELATIVE, AL_FALSE);
@@ -43,6 +53,38 @@ void Audio::Source::SetLoop(bool loop) {
 
 void Audio::Source::SetPos(Vector pos) {
     alSource3f(m_source, AL_POSITION, pos.x, pos.y, pos.z);
+}
+
+Audio::Sequence::Sequence(Source* source) : m_source(source), m_index(-1) {}
+
+Audio::Sequence::~Sequence() {
+    Stop();
+}
+
+void Audio::Sequence::Play() {
+    m_index = 0;
+    m_source->SetSample(m_samples[0]);
+    m_source->Play();
+}
+
+void Audio::Sequence::Stop() {
+    m_source->Stop();
+    m_index = -1;
+}
+
+void Audio::Sequence::AddSample(Sample* sample) {
+    m_samples.push_back(sample);
+}
+
+void Audio::Sequence::Update() {
+    if (m_index >= 0 && !m_source->IsPlaying()) {
+        if (m_index + 1 == m_samples.size()) {
+            m_index = -1;
+            return;
+        }
+        m_source->SetSample(m_samples[++m_index]);
+        m_source->Play();
+    }
 }
 
 Audio::Audio() {

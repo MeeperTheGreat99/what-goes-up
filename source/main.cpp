@@ -81,11 +81,25 @@ int main(int argc, char* argv[]) {
         light->SetIntensity((rand() % 100) / 150.0f);
     }
 
-    Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
+    /* Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
     Audio::Source* source = new Audio::Source(sample);
     source->Set3D();
     source->SetPos(phone->GetPos());
-    source->Play();
+    source->Play(); */
+
+    Audio::Source* so = new Audio::Source(nullptr);
+    so->Set3D();
+    so->SetPos(phone->GetPos());
+    Audio::Sequence* seq = new Audio::Sequence(so);
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/OH_DEAR.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/binifit_research.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/binifit_how.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/not_paid.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/waiting_for_raise.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/environment/punishment.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/voicelines/carl.wav"));
+    seq->AddSample(audio->LoadSample("res/sounds/environment/irm.wav"));
+    seq->Play();
 
     audio->SetReverb(EFX_REVERB_PRESET_ROOM);
 
@@ -96,6 +110,8 @@ int main(int argc, char* argv[]) {
         float time = clock.GetElapsedTime();
         float delta = std::min(0.1f, time - last);
         accumulator += delta;
+
+        seq->Update();
 
         while (accumulator >= logicPeriod) {
             physics->Update(logicPeriod);
