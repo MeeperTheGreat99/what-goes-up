@@ -29,6 +29,12 @@ Mesh::Mesh(
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+
     glBindVertexArray(0);
 }
 
@@ -50,6 +56,9 @@ void Mesh::Draw(ObjectShader* shader) {
         
         if (m_material.normal) {
             m_material.normal->Use(1);
+            shader->SetNormalPresent(true);
+        } else {
+            shader->SetNormalPresent(false);
         }
         
         if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
@@ -116,6 +125,11 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
 
             if (mesh->HasTextureCoords(0)) {
                 memcpy(&vertex.uv[0], &mesh->mTextureCoords[0][k].x, sizeof(float) * 2);
+            }
+
+            if (mesh->HasTangentsAndBitangents()) {
+                memcpy(&vertex.tangent[0], &mesh->mTangents[k][0], sizeof(Vector));
+                memcpy(&vertex.bitangent[0], &mesh->mBitangents[k][0], sizeof(Vector));
             }
 
             vertices.push_back(vertex);

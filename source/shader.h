@@ -127,12 +127,22 @@ public:
         SetUniform(m_uAlbedoColor, color);
     }
 
+    void SetNormalTex(int slot) {
+        SetUniform(m_uNormalSlot, slot);
+    }
+
+    void SetNormalPresent(bool present) {
+        SetUniform(m_uNormalPresent, (int)present);
+    }
+
 protected:
     int m_uProj;
     int m_uView;
     int m_uModel;
     int m_uAlbedoSlot;
     int m_uAlbedoColor;
+    int m_uNormalSlot;
+    int m_uNormalPresent;
 
     virtual void Load() override {
         Shader::Load();
@@ -141,6 +151,8 @@ protected:
         m_uModel = GetUniformLocation("Model");
         m_uAlbedoSlot = GetUniformLocation("tex_albedo");
         m_uAlbedoColor = GetUniformLocation("albedo");
+        m_uNormalSlot = GetUniformLocation("tex_normal");
+        m_uNormalPresent = GetUniformLocation("tex_normal_present");
     }
 };
 

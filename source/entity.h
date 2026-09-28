@@ -4,14 +4,19 @@
 #include "vector.h"
 #include <map>
 #include <stdexcept>
+#include <functional>
 
 typedef uint32_t EID;
 
 class Entity {
 public:
+    friend class Map;
+
     static std::map<EID, Entity*> Entities;
     static PhysicsWorld* World;
     static float WorldTime;
+
+    static Entity* Create(std::string classname);
 
     Entity() {
         EID id = 0;
@@ -64,6 +69,14 @@ public:
         }
     }
 
+    virtual void ApplyProperty(std::string key, std::string value) {
+        if (key == "origin") {
+            SetPos(Vector::fromOrigin(value));
+        } else if (key == "angles") {
+            SetAngles(Vector::fromAngles(value));
+        }
+    }
+
     // Called after the entity is created
     virtual void Spawn() {m_spawned = true;}
     // Called before the entity is destroyed
@@ -88,3 +101,24 @@ private:
     Vector m_pos;
     Quaternion m_rot;
 };
+
+class EntityFactory {
+public:
+    using CreatorFunc = std::function<Entity*()>;
+
+    static EntityFactory& Instance();
+    void Register(std::string classname, CreatorFunc func);
+    Entity* Create(std::string classname);
+
+private:
+    std::map<std::string, CreatorFunc> m_registry;
+};
+
+#define ENTCLASS(identifier, classname) \
+    static struct classname##Registrar {\
+        classname##Registrar() {\
+            EntityFactory::Instance().Register(#identifier, []() {\
+                return new classname();\
+            });\
+        }\
+    } classname##_Registrar_Instance;

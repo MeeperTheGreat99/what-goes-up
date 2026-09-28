@@ -71,7 +71,6 @@ Texture* Texture::LoadMemory(unsigned char* data, size_t size, bool srgb, bool r
 
 Texture::Texture(int width, int height, int chan, unsigned char* image, bool srgb, bool repeat) :
 m_width(width), m_height(height) {
-    srgb = false;
     int format, iformat;
     if (srgb) {
         switch (chan) {
