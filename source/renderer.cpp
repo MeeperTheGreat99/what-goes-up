@@ -76,6 +76,7 @@ Renderer::Renderer() {
     m_objectShader = new ObjectShader();
     m_objectShader->Finalize();
     m_objectShader->SetAlbedoTex(0);
+    m_objectShader->SetNormalTex(1);
 
     m_lightSphereShader = new LightSphereShader();
     m_lightSphereShader->Finalize();

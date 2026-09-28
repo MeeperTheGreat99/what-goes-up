@@ -6,6 +6,8 @@
 #include <LinearMath/btVector3.h>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <string>
+#include <sstream>
 
 class Vector {
 public:
@@ -144,6 +146,20 @@ public:
             std::max(a.z, b.z)
         );
     }
+
+    static Vector fromOrigin(std::string value) {
+        std::istringstream stream(value);
+        float x, y, z;
+        stream >> x >> y >> z;
+        return Vector(x, z, -y) / 32.0f;
+    }
+
+    static Vector fromAngles(std::string value) {
+        std::istringstream stream(value);
+        float x, y, z;
+        stream >> x >> y >> z;
+        return Vector(x, y, z);
+    }
 };
 
 class Quaternion {
@@ -157,6 +173,33 @@ public:
 
     Vector toEulerAngles() {
         return glm::degrees(glm::eulerAngles(gl()));
+    }
+
+    static Quaternion Slerp(float a, Quaternion quat1, Quaternion quat2) {
+        quat1 = glm::normalize(quat1.gl());
+        quat2 = glm::normalize(quat2.gl());
+        float dot = glm::dot(quat1.gl(), quat2.gl());
+
+        if (dot < 0.0f) {
+            quat2.w = -quat2.w;
+            quat2.x = -quat2.x;
+            quat2.y = -quat2.y;
+            quat2.z = -quat2.z;
+            dot = -dot;
+        }
+
+        const float EPSILON = 0.0001f;
+        if (dot > 1.0f - EPSILON) {
+            return glm::normalize(quat1.gl() + (quat2.gl() - quat1.gl()) * a);
+        }
+
+        float angle = acosf(dot);
+        float sinAngle = sinf(angle);
+        float invSinAngle = 1.0f / sinAngle;
+        float c1 = sinf((1.0f - a) * angle) * invSinAngle;
+        float c2 = sinf(a * angle) * invSinAngle;
+
+        return quat1.gl() * c1 + quat2.gl() * c2;
     }
 
     static Quaternion fromEulerAngles(Vector angles) {

@@ -1,21 +1,18 @@
 #include "accept.h"
 #include "audio.h"
 #include "clock.h"
-#include "mapper/mapconvert.h"
-#include "mapper/map2mesh.h"
+#include "map.h"
 #include "meshentity.h"
 #include "physdebugger.h"
 #include "player.h"
-#include "world.h"
-#include "evelator.h"
 #include "input.h"
 #include "physics.h"
 #include "renderer.h"
 #include "window.h"
+#include "world.h"
 #include <SDL3/SDL_main.h>
 #include <ctime>
 #include <exception>
-#include <fstream>
 
 #define CON
 #ifdef CON
@@ -62,27 +59,18 @@ int main(int argc, char* argv[]) {
 
     window->SetMouseLocked(true);
 
+    Map::Load("intro");
+
     Player* player = new Player();
     player->SetInput(input);
-    player->SetPos(Vector(0, 1, 15));
+    player->SetPos(Vector(0, 3, 0));
     player->SetAngles(Vector(0, 90, 0));
     player->Spawn();
     renderer->SetCamera(&player->GetCamera());
 
-    World* world = new World();
-    world->Spawn();
-
-    Evelator* evelator = new Evelator();
-    evelator->SetPos(Vector(0, 0.2, -3));
-    evelator->Spawn();
-
-    PornUSB* pornUSB = new PornUSB();
-    pornUSB->SetPos(Vector(0, 0.5, -3));
-    pornUSB->Spawn();
-
     MeshEntity* phone = new MeshEntity();
     phone->SetModelFilename("res/models/phone.obj", true);
-    phone->SetPos(player->GetPos() + Vector(0, 0, -1));
+    phone->SetPos(player->GetPos() + Vector(0, -2, -1));
     phone->Spawn();
 
     // create 100 lights in a random area around the player
@@ -92,32 +80,6 @@ int main(int argc, char* argv[]) {
         light->SetColor(Vector((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f));
         light->SetIntensity((rand() % 100) / 150.0f);
     }
-
-    std::ifstream file("res/maps/intro.map", std::ios::binary);
-    file.seekg(0, std::ios::end);
-    size_t size = file.tellg();
-    file.seekg(0, std::ios::beg);
-    char* data = new char[size];
-    file.read((char*)data, size);
-    file.close();
-
-    MapConvert* map = new MapConvert(data, size);
-    delete[] data;
-    if (!map->Convert()) {
-        printf("FUUUUUCK!\n");
-        while(true);
-    }
-
-    for (MapEnt* ent : map->GetEntities()) {
-        Model* model = MapEntToMesh(ent);
-        if (model) {
-            MeshEntity* mesh = new MeshEntity();
-            mesh->SetModel(model, false);
-            mesh->Spawn();
-        }
-    }
-
-    delete map;
 
     Audio::Sample* sample = audio->LoadSample("res/sounds/voicelines/voice_message_edited.wav");
     Audio::Source* source = new Audio::Source(sample);

@@ -3,10 +3,6 @@
 
 class World : public PhysEntity {
 public:
-    World() {
-        m_model = Model::LoadExternal("res/models/floor.obj");
-    }
-
     virtual void Spawn() override {
         PhysEntity::Spawn();
 
@@ -23,3 +19,5 @@ public:
 private:
     btCollisionShape* m_shape;
 };
+
+ENTCLASS(worldspawn, World)

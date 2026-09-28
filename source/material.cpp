@@ -27,8 +27,8 @@ bool Material::Load(std::string filename, Material& out) {
     mat.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
     mat.albedo.texture = Texture::Load("res/textures/" + entries["albedoMap"], false);
 
-    if (entries.count("normal") && !entries["normal"].empty()) {
-        mat.normal = Texture::Load("res/textures/" + entries["normal"], false);
+    if (entries.count("normalMap") && !entries["normalMap"].empty()) {
+        mat.normal = Texture::Load("res/textures/" + entries["normalMap"], false);
     }
 
     mat.specular.value = entries.count("specular") ? std::stof(entries["specular"]) : 0.5f;
