@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
 
     Player* player = new Player();
     player->SetInput(input);
-    player->SetPos(Vector(0, 3, 0));
-    player->SetAngles(Vector(0, 90, 0));
+    player->SetPos(Map::GetPlayerPosition());
+    player->SetAngles(Map::GetPlayerAngles());
     player->Spawn();
     renderer->SetCamera(&player->GetCamera());
 

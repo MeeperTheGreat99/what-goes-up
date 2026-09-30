@@ -1,4 +1,4 @@
 albedoMap=floor_tile.png
-normalMap=
+normalMap=floor_tile_n.png
 specular=0.5
 reflectivity=0

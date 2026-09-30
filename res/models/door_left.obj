@@ -1,7 +1,7 @@
 # Blender 3.3.21
 # www.blender.org
 mtllib door_left.mtl
-o Cube
+o door_left
 v 0.000000 0.000000 0.000000
 v 0.000000 2.000000 0.000000
 v 0.000000 0.000000 -0.050000

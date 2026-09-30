@@ -25,7 +25,7 @@ Texture* Texture::GetDefault() {
             flip = !flip;
         }
 
-        DefaultTexture = new Texture(16, 16, 3, image, false, true);
+        DefaultTexture = new Texture(16, 16, 3, image, false);
         delete[] image;
     }
 

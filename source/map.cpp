@@ -6,6 +6,8 @@
 #include <fstream>
 
 std::string Map::CurrentMap = "";
+Vector Map::PlayerPosition;
+Vector Map::PlayerAngles;
 
 void Map::Load(std::string name) {
     if (!CurrentMap.empty()) {
@@ -47,6 +49,10 @@ void Map::Load(std::string name) {
             light->SetPos(Vector::fromOrigin(ent->properties["origin"]));
             light->SetColor(Vector::fromAngles(ent->properties["color"]));
             light->SetIntensity(std::stof(ent->properties["intensity"]));
+            continue;
+        } else if (classname == "info_player_start") {
+            PlayerPosition = Vector::fromOrigin(ent->properties["origin"]);
+            PlayerAngles = Vector::fromAngles(ent->properties["angles"]);
             continue;
         }
 

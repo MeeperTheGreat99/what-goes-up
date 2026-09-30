@@ -1,12 +1,19 @@
 #include "door.h"
 
+static const char* models[] = {
+    "res/models/door_left.obj",
+    "res/models/door_right.obj"
+};
+
 void Door::ApplyProperty(std::string key, std::string value) {
     PhysEntity::ApplyProperty(key, value);
 
-    if (key == "mesh") {
-        m_model = Model::LoadExternal(value);
+    if (key == "model") {
+        m_model = Model::LoadExternal(models[std::stoi(value)-1]);
     } else if (key == "speed") {
         m_speed = std::stof(value);
+    } else if (key == "direction") {
+        m_direction = std::stoi(value);
     }
 }
 
@@ -16,7 +23,7 @@ void Door::Spawn() {
     m_shape = PhysicsWorld::ShapeFromModel(m_model, false);
     InitializeRigidbody(m_shape, 0.0f);
     m_initialRot = GetRot();
-    m_openRot = Quaternion::fromEulerAngles(GetAngles() + Vector(0, -90, 0));
+    m_openRot = Quaternion::fromEulerAngles(GetAngles() + Vector(0, m_direction ? -90 : 90, 0));
     m_openFraction = 0.0f;
     m_moving = false;
     m_open = false;

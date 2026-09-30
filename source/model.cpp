@@ -88,6 +88,7 @@ Model* Model::LoadExternal(std::string filename) {
     );
 
     if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        printf("couldn't load model: %s\n", filename.c_str());
         delete imp;
         return ErrorModel;
     }

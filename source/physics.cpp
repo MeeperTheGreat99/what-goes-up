@@ -29,15 +29,19 @@ btCollisionShape* PhysicsWorld::ShapeFromMesh(Mesh* mesh, bool complex) {
 
 btCollisionShape* PhysicsWorld::ShapeFromModel(Model* model, bool complex) {
     btCompoundShape* compound = new btCompoundShape();
-        for (Mesh* mesh : model->GetMeshes()) {
-            btCollisionShape* shape = ShapeFromMesh(mesh, complex);
-            if (shape) {
-                btTransform transform;
-                transform.setIdentity();
-                compound->addChildShape(transform, shape);
-            }
+
+    for (Mesh* mesh : model->GetMeshes()) {
+        btCollisionShape* shape = ShapeFromMesh(mesh, complex);
+
+        if (shape) {
+            btTransform transform;
+            
+            transform.setIdentity();
+            compound->addChildShape(transform, shape);
         }
-        return compound;
+    }
+
+    return compound;
 }
 
 void PhysicsWorld::SafeDeleteShape(btCollisionShape* shape) {

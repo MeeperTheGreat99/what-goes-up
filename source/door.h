@@ -11,6 +11,7 @@ public:
 
 private:
     float m_speed;
+    bool m_direction;
     btCollisionShape* m_shape;
     Quaternion m_initialRot;
     Quaternion m_openRot;

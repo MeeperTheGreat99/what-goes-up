@@ -18,7 +18,6 @@ void main() {
     gPosition = Position;
     if (tex_normal_present) {
         vec3 normal = texture(tex_normal, Coord).rgb * 2.0 - 1.0;
-        normal.x = -normal.x;
         gNormal = normalize(TBN * normal);
     } else {
         gNormal = Normal;
