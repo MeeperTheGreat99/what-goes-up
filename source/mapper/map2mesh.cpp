@@ -51,7 +51,7 @@ Model* MapEntToMesh(MapEnt* ent) {
 
         Material material;
         if (!Material::Load("res/materials/" + entry.first + ".mat", material)) {
-            material.albedo.texture = Texture::Load("res/textures/" + entry.first + ".png", false);
+            material.albedo.texture = Texture::Load("res/textures/" + entry.first + ".png", false, true);
             material.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
         }
             

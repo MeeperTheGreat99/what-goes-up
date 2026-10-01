@@ -182,7 +182,7 @@ Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextu
         const aiTexture* texture = scene->GetEmbeddedTexture(texpath.C_Str());
         if (texture) {
             if (!texture->mHeight) {
-                return nullptr;//Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb);
+                return nullptr;//Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb, true);
             } else {
                 unsigned char* data = new unsigned char[texture->mWidth * texture->mHeight * 4];
                 for (int i = 0; i < texture->mWidth * texture->mHeight; i++) {
@@ -192,7 +192,7 @@ Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextu
                     data[idx+2] = texture->pcData[i].b;
                     data[idx+3] = texture->pcData[i].a;
                 }
-                Texture* created = new Texture(texture->mWidth, texture->mHeight, 4, data, srgb);
+                Texture* created = new Texture(texture->mWidth, texture->mHeight, 4, data, srgb, true);
                 delete[] data;
                 return created;
             }

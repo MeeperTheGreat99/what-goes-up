@@ -1,0 +1,4 @@
+albedoMap=ceiling_tile.png
+normalMap=ceiling_tile_n.png
+specular=0.5
+reflectivity=0
