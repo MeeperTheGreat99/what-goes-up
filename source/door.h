@@ -18,7 +18,7 @@ private:
     Audio::Source* m_audioSource;
     float m_speed;
     bool m_modelFlip;
-    bool m_direction;
+    bool m_direction = false;
     btCollisionShape* m_shape;
     Quaternion m_initialRot;
     Quaternion m_openRot;
