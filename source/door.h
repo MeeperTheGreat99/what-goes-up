@@ -3,6 +3,8 @@
 
 class Door : public PhysEntity {
 public:
+    Door();
+
     virtual void ApplyProperty(std::string key, std::string value) override;
     virtual void Spawn() override;
     virtual void Clean() override;
@@ -10,7 +12,12 @@ public:
     virtual void FixedUpdate(float delta) override;
 
 private:
+    Audio::Sample* m_openSound;
+    Audio::Sample* m_closeSound;
+    Audio::Sample* m_squeakSound;
+    Audio::Source* m_audioSource;
     float m_speed;
+    bool m_modelFlip;
     bool m_direction;
     btCollisionShape* m_shape;
     Quaternion m_initialRot;

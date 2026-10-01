@@ -21,10 +21,18 @@ Audio::Source::~Source() {
 }
 
 void Audio::Source::SetSample(Sample* sample) {
+    if (IsPlaying()) {
+        Stop();
+    }
+    
     alSourcei(m_source, AL_BUFFER, sample->buffer);
 }
 
 void Audio::Source::Play() {
+    if (IsPlaying()) {
+        Stop();
+    }
+    
     alSourcePlay(m_source);
 }
 
