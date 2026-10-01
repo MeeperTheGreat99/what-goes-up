@@ -2,14 +2,12 @@
 #include "audio.h"
 #include "clock.h"
 #include "map.h"
-#include "meshentity.h"
 #include "physdebugger.h"
 #include "player.h"
 #include "input.h"
 #include "physics.h"
 #include "renderer.h"
 #include "window.h"
-#include "world.h"
 #include <SDL3/SDL_main.h>
 #include <ctime>
 #include <exception>

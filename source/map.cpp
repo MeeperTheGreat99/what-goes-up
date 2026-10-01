@@ -3,6 +3,7 @@
 #include "mapper/mapconvert.h"
 #include "mapper/mapent.h"
 #include "mapper/map2mesh.h"
+#include "world.h"
 #include <fstream>
 
 std::string Map::CurrentMap = "";
@@ -69,6 +70,72 @@ void Map::Load(std::string name) {
             Model* model = MapEntToMesh(ent);
             if (model) {
                 entity->m_model = model;
+            }
+
+            typedef std::vector<Vector> Collision;
+            std::vector<Collision> collisions;
+
+            for (auto& shape : ent->collisions) {
+                Collision collision;
+
+                for (size_t ID : shape) {
+                    int index = 0;
+
+                    auto find = std::find_if(ent->polys.begin(), ent->polys.end(), [&](Poly& a) {
+                        index = 0;
+
+                        for (MapConvert::Vertex& v : a.vertices) {
+                            if (v.ID == ID) {
+                                return true;
+                            }
+                            
+                            index++;
+                        }
+
+                        return false;
+                    });
+
+                    if (find != ent->polys.end()) {
+                        Poly& poly = ent->polys[find - ent->polys.begin()];
+                        Vector point = poly.vertices[index].point;
+                        collision.push_back(Vector(point.x, point.y, point.z));
+                    }
+                }
+
+                collisions.push_back(collision);
+            }
+
+            World* world = dynamic_cast<World*>(entity);
+            if (world) {
+                if (collisions.size() < 2) {
+                    btConvexHullShape* shape = new btConvexHullShape();
+
+                    for (Vector p : collisions[0]) {
+                        shape->addPoint(p.bt(), false);
+                    }
+
+                    shape->recalcLocalAabb();
+                    world->AssumeShape(shape);
+                } else {
+                    btTransform transform;
+                    btCompoundShape* compound = new btCompoundShape();
+                    
+                    transform.setIdentity();
+
+                    for (Collision& collision : collisions) {
+                        btConvexHullShape* shape = new btConvexHullShape();
+
+                        for (Vector p : collision) {
+                            shape->addPoint(p.bt(), false);
+                        }
+
+                        shape->recalcLocalAabb();
+                        compound->addChildShape(transform, shape);
+                    }
+
+                    compound->recalculateLocalAabb();
+                    world->AssumeShape(compound);
+                }
             }
         }
     }

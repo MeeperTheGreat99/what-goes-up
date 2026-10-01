@@ -135,6 +135,10 @@ public:
         SetUniform(m_uNormalPresent, (int)present);
     }
 
+    void SetReflectivity(float reflectivity) {
+        SetUniform(m_uReflectivity, reflectivity);
+    }
+
 protected:
     int m_uProj;
     int m_uView;
@@ -143,6 +147,7 @@ protected:
     int m_uAlbedoColor;
     int m_uNormalSlot;
     int m_uNormalPresent;
+    int m_uReflectivity;
 
     virtual void Load() override {
         Shader::Load();
@@ -153,6 +158,7 @@ protected:
         m_uAlbedoColor = GetUniformLocation("albedo");
         m_uNormalSlot = GetUniformLocation("tex_normal");
         m_uNormalPresent = GetUniformLocation("tex_normal_present");
+        m_uReflectivity = GetUniformLocation("reflectivity");
     }
 };
 
@@ -219,6 +225,10 @@ class LightShader : public Shader {
 public:
     LightShader() : Shader("res/shaders/screen.vs", "res/shaders/light.fs") {}
 
+    void SetViewPos(glm::vec3 pos) {
+        SetUniform(m_uViewPos, pos);
+    }
+
     void SetPositionTex(int slot) {
         SetUniform(m_ugPosition, slot);
     }
@@ -235,17 +245,31 @@ public:
         SetUniform(m_ugLight, slot);
     }
 
+    void SetReflectivityTex(int slot) {
+        SetUniform(m_ugReflectivity, slot);
+    }
+
+    void SetReflectionTex(int slot) {
+        SetUniform(m_uReflectionSlot, slot);
+    }
+
 protected:
+    int m_uViewPos;
     int m_ugPosition;
     int m_ugNormal;
     int m_ugAlbedoSpec;
     int m_ugLight;
+    int m_ugReflectivity;
+    int m_uReflectionSlot;
 
     virtual void Load() override {
         Shader::Load();
+        m_uViewPos = GetUniformLocation("ViewPos");
         m_ugPosition = GetUniformLocation("gPosition");
         m_ugNormal = GetUniformLocation("gNormal");
         m_ugAlbedoSpec = GetUniformLocation("gAlbedoSpec");
         m_ugLight = GetUniformLocation("gLight");
+        m_ugReflectivity = GetUniformLocation("gReflectivity");
+        m_uReflectionSlot = GetUniformLocation("tex_reflection");
     }
 };

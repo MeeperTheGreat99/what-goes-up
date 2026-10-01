@@ -64,6 +64,8 @@ void Mesh::Draw(ObjectShader* shader) {
         if (m_material.flags & MATERIAL_FLAG_SPECULAR_TEXTURE) {
             m_material.specular.texture->Use(2);
         }
+
+        shader->SetReflectivity(m_material.reflectivity);
     }
 
     glBindVertexArray(m_vao);
@@ -158,6 +160,10 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
                 mat.albedo.texture = Texture::GetDefault();
                 mat.flags |= MATERIAL_FLAG_ALBEDO_TEXTURE;
             }
+        }
+
+        if (material->Get(AI_MATKEY_ROUGHNESS_FACTOR, mat.reflectivity) == aiReturn_SUCCESS) {
+            mat.reflectivity = 1.0f - mat.reflectivity;
         }
 
         id.meshes.push_back(new Mesh(vertices, indices, mat));

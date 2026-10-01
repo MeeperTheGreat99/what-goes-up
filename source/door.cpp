@@ -1,8 +1,8 @@
 #include "door.h"
 
 static const char* models[] = {
-    "res/models/door_left.obj",
-    "res/models/door_right.obj"
+    "res/models/door_left.glb",
+    "res/models/door_right.glb"
 };
 
 void Door::ApplyProperty(std::string key, std::string value) {

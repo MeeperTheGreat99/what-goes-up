@@ -89,6 +89,8 @@ Renderer::Renderer() {
     m_lightShader->SetNormalTex(1);
     m_lightShader->SetAlbedoSpecTex(2);
     m_lightShader->SetLightTex(3);
+    m_lightShader->SetReflectivityTex(4);
+    m_lightShader->SetReflectionTex(5);
     
     m_screenShader = new Shader("res/shaders/screen.vs", "res/shaders/screen.fs");
     m_screenShader->Finalize();
@@ -98,6 +100,7 @@ Renderer::Renderer() {
     m_textShader->Finalize();
 
     m_lightSphere = Model::LoadExternal("res/models/light.obj");
+    m_reflection = new Cubemap("res/textures/sky");
     
     m_font = Font::Load("res/fonts/raleway.ttf");
     
@@ -108,6 +111,7 @@ Renderer::Renderer() {
 
 Renderer::~Renderer() {
     delete m_font;
+    delete m_reflection;
     delete m_lightSphere;
     delete m_textShader;
     delete m_screenShader;
@@ -209,8 +213,14 @@ void Renderer::Draw() {
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[2]);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[!m_pingPongState]);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[3]);
 
     m_lightShader->Use();
+    m_reflection->Use(5);
+    if (m_camera) {
+        m_lightShader->SetViewPos(m_camera->GetPos().gl());
+    }
 
     glBindVertexArray(m_screenVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -322,7 +332,14 @@ void Renderer::CreateFramebuffers() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_gBufferTextures[2], 0);
 
-    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+    glGenTextures(1, &m_gBufferTextures[3]);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[3]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_gBufferTextures[3], 0);
+
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
     glDrawBuffers(sizeof(buffers) / sizeof(buffers[0]), buffers);
 
     glGenRenderbuffers(1, &m_gBufferDepth);

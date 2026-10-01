@@ -6,7 +6,6 @@ public:
     virtual void Spawn() override {
         PhysEntity::Spawn();
 
-        m_shape = PhysicsWorld::ShapeFromModel(m_model, true);
         InitializeRigidbody(m_shape, 0.0f);
     }
 
@@ -16,8 +15,12 @@ public:
         PhysicsWorld::SafeDeleteShape(m_shape);
     }
 
+    void AssumeShape(btCollisionShape* shape) {
+        m_shape = shape;
+    }
+
 private:
-    btCollisionShape* m_shape;
+    btCollisionShape* m_shape = nullptr;
 };
 
 ENTCLASS(worldspawn, World)

@@ -9,10 +9,12 @@ uniform sampler2D tex_albedo;
 uniform vec3 albedo;
 uniform sampler2D tex_normal;
 uniform bool tex_normal_present;
+uniform float reflectivity;
 
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
+layout (location = 3) out vec4 gReflectivity;
 
 void main() {
     gPosition = Position;
@@ -23,4 +25,5 @@ void main() {
         gNormal = Normal;
     }
     gAlbedoSpec = vec4(texture(tex_albedo, Coord).rgb * albedo, 0.5);
+    gReflectivity.r = reflectivity;
 }
