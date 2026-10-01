@@ -1,0 +1,46 @@
+@SolidClass = worldspawn : "World entity" []
+
+@BaseClass = Angles
+[
+	angles(string) : "Pitch(X) Yaw(Y) Roll(Z)" : "0 0 0"
+]
+
+@BaseClass size(-12 -12 -29, 12 12 29) color(0 255 0) = PlayerClass []
+@BaseClass size(-16 -16 0, 16 16 32) color(0 0 255) = MeshClass []
+@BaseClass size(-8 -8 0, 8 8 32) color(255 0 0) = DynamicClass []
+
+@PointClass = light : "Light" [
+	color(color255) : "Color" : "255 255 255 255"
+	intensity(integer) : "Intensity" : 1
+]
+
+@PointClass base(PlayerClass, Angles) = info_player_start : "Player Start" []
+@PointClass base(MeshClass, Angles) = info_static_mesh : "Static Mesh"
+[
+	mesh(string) : "Filename of the mesh"
+]
+
+@PointClass base(DynamicClass, Angles) = prop_physics_mesh : "Physics Mesh"
+[
+	mesh(string) : "Filename of the mesh"
+	spawnflags(flags) = 
+	[
+		1 : "Dynamic" : 0
+	]
+]
+
+@PointClass base(Angles) = prop_door : "Door"
+[
+	model(choices) : "Model" : 1 =
+	[
+		0 : "NULL"
+		1 : "Industrial Door (Left)"
+		2 : "Industrial Door (Right)"
+	]
+	speed(integer) : "Open/Close speed" : 2
+	direction(choices) : "Open Direction" : 0 =
+	[
+		0 : "Counter-Clockwise"
+		1 : "Clockwise"
+	]
+]
