@@ -1,0 +1,4 @@
+albedoMap=tile_light.png
+normalMap=tile_light_n.png
+specular=0.5
+reflectivity=0

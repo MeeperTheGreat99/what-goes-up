@@ -165,10 +165,14 @@ void Renderer::Draw() {
 
     // BEGIN DEFERRED LIGHTING PASS
 
-    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_GREATER);
 
     m_pingPongState = false;
-    glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
+    glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -199,12 +203,15 @@ void Renderer::Draw() {
 
     glCullFace(GL_BACK);
     glDisable(GL_BLEND);
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_TRUE);
     m_pingPongState = !m_pingPongState;
 
     // END DEFERRED LIGHTING PASS
 
     // BEGIN LIGHTING PASS
     
+    glDisable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
 
     glActiveTexture(GL_TEXTURE0);
