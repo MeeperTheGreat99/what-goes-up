@@ -1,8 +1,11 @@
 #include "audio.h"
 #include "SDL3/SDL_audio.h"
 #include "alhelpers.h"
+#include "renderer.h"
 #include <AL/alext.h>
 #include <stdexcept>
+#include <fstream>
+#include <sstream>
 
 Audio* Audio::Instance = nullptr;
 
@@ -13,6 +16,7 @@ Audio::Source::Source(Audio::Sample* sample) {
     if (sample) {
         alSourcei(m_source, AL_BUFFER, sample->buffer);
     }
+    m_sample = sample;
     SetPos(0.0f);
 }
 
@@ -26,6 +30,7 @@ void Audio::Source::SetSample(Sample* sample) {
     }
     
     alSourcei(m_source, AL_BUFFER, sample->buffer);
+    m_sample = sample;
 }
 
 void Audio::Source::Play() {
@@ -34,9 +39,15 @@ void Audio::Source::Play() {
     }
     
     alSourcePlay(m_source);
+    if (!m_sample->subtitle.empty()) {
+        Renderer::Instance->SetSubtitleText(m_sample->subtitle, m_sample->length);
+    }
 }
 
 void Audio::Source::Stop() {
+    if (!m_sample->subtitle.empty()) {
+        Renderer::Instance->SetSubtitleText("", 0.0f);
+    }
     alSourceStop(m_source);
 }
 
@@ -112,6 +123,21 @@ Audio::Audio() {
         throw std::runtime_error("failed to create audio context");
     }
 
+    std::string line;
+    std::ifstream subtitlesFile("res/sounds/subtitles.txt");
+    
+    while (std::getline(subtitlesFile, line)) {
+        std::istringstream stream(line);
+        std::string filename, subtitle;
+
+        std::getline(stream, filename, '=');
+        std::getline(stream, subtitle);
+        
+        m_subtitles[filename] = subtitle;
+    }
+
+    subtitlesFile.close();
+
     LoadALExtensions();
 
     palGenAuxiliaryEffectSlots(1, &m_auxSlot);
@@ -161,10 +187,18 @@ Audio::Sample* Audio::LoadSample(std::string filename) {
     int format = (spec.channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
     alBufferData(buffer, format, data, dataSize, spec.freq);
 
+    int chan, bits;
+    alGetBufferi(buffer, AL_CHANNELS, &chan);
+    alGetBufferi(buffer, AL_BITS, &bits);
+
     SDL_free(data);
 
     Sample* sample = new Sample();
     sample->buffer = buffer;
+    sample->length = (float)dataSize / (spec.freq * spec.channels * (bits >> 3));
+    if (m_subtitles.count(filename)) {
+        sample->subtitle = m_subtitles[filename];
+    }
     m_loadedSamples[filename] = sample;
 
     return sample;

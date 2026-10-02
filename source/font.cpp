@@ -19,7 +19,7 @@ void GenerateThread(std::vector<GenGlyph>& glyphs) {
         msdfgen::Shape::Bounds bounds = glyph.shape.getBounds();
         double aspect = fabs((bounds.r - bounds.l) / (bounds.t - bounds.b));
 
-        msdfgen::edgeColoringSimple(glyph.shape, 3.0);
+        msdfgen::edgeColoringSimple(glyph.shape, 0.1);
         msdfgen::Bitmap<float, 3> msdf(glyph.fontSize, glyph.fontSize / aspect);
 
         msdfgen::Vector2 scale(msdf.width(), msdf.height() * aspect);

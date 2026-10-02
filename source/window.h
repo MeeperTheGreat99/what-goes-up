@@ -12,6 +12,7 @@ public:
     bool Update();
     void SwapScreen();
     void SetMouseLocked(bool locked);
+    void Maximize();
 
     void SetRenderer(Renderer* renderer) {m_renderer = renderer;}
     void SetInput(Input* input) {m_input = input;}

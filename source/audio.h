@@ -11,6 +11,8 @@ class Audio {
 public:
     struct Sample {
         unsigned int buffer;
+        float length;
+        std::string subtitle;
     };
 
     class Source {
@@ -28,6 +30,7 @@ public:
 
     private:
         unsigned int m_source;
+        Sample* m_sample;
     };
 
     class Sequence {
@@ -62,4 +65,5 @@ private:
     unsigned int m_auxSlot;
     unsigned int m_reverbEffect;
     std::map<std::string, Sample*> m_loadedSamples;
+    std::map<std::string, std::string> m_subtitles;
 };

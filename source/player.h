@@ -12,6 +12,7 @@ public:
 
     static constexpr float Friction = 8.0f;
     static constexpr float MaxSpeed = 8.0f;
+    static constexpr float MaxStepHeight = 0.25f;
     static constexpr float Reach = 2.0f;
     static constexpr float Mass = 80.0f;
     static constexpr float CollisionRadius = 0.4f;
@@ -38,9 +39,12 @@ public:
 
         m_stepSource = new Audio::Source(m_stepSounds[0]);
         m_stepSource->Set3D();
-
+        
+        m_onGroundPrev = false;
+        m_airJump = false;
         m_shape = new btCapsuleShape(CollisionRadius, CollisionHeight - 2 * CollisionRadius);
-        m_trShape = new btSphereShape(CollisionRadius - 0.02f);
+        m_trShape = new btSphereShape(CollisionRadius - 0.01f);
+        m_trFullShape = new btCapsuleShape(CollisionRadius - 0.01f, CollisionHeight - 2 * (CollisionRadius - 0.01f));
         InitializeRigidbody(m_shape, Mass);
         m_rigidbody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
         m_rigidbody->setFriction(0.0f);
@@ -50,6 +54,7 @@ public:
     virtual void Clean() override {
         PhysEntity::Clean();
 
+        PhysicsWorld::SafeDeleteShape(m_trFullShape);
         PhysicsWorld::SafeDeleteShape(m_trShape);
         PhysicsWorld::SafeDeleteShape(m_shape);
 
@@ -97,8 +102,8 @@ public:
         Vector forward = angles.direction();
 
         PhysicsWorld::TraceResult result;
-        Vector trStart = GetPos() - Vector(0.0f, 0.7f, 0.0f);
-        bool onGround = PhysicsWorld::TraceShape(trStart, trStart - Vector(0.0f, 0.04f, 0.0f), m_trShape, result);
+        Vector trStart = GetPos() - Vector(0.0f, CollisionHeight * 0.5f - CollisionRadius, 0.0f);
+        bool onGround = PhysicsWorld::TraceShape(trStart, trStart - Vector(0.0f, 0.02f, 0.0f), m_trShape, result);
         Vector groundNormal = onGround ? result.normal : Vector(0, 1, 0);
         Vector groundRight = forward.cross(groundNormal).normalized();
         Vector groundForward = groundNormal.cross(groundRight).normalized();
@@ -110,14 +115,30 @@ public:
         if (onGround) {
             float friction = 1.0f / (1.0f + delta * Friction);
             velocity *= friction;
+
+            if (!m_onGroundPrev) {
+                m_airJump = false;
+            }
+            
             if (velocity.length2() > MaxSpeed * MaxSpeed) {
                 velocity = velocity.normalized() * MaxSpeed;
             }
+
+            if (m_jumpAction->IsPressed()) {
+                velocity.y += 6.0f;
+                onGround = false;
+                m_airJump = true;
+            }
+
+            m_rigidbody->setGravity(Vector(0).bt());
+        } else {
+            m_rigidbody->setGravity(Entity::World->world->getGravity());
+        }
+        
+        if (!onGround && m_onGroundPrev && !m_airJump && velocity.y > 0.0f) {
+            velocity.y = 0.0f;
         }
 
-        if (onGround && m_jumpAction->IsPressed()) {
-            velocity.y += 6.0f;
-        }
 
         m_rigidbody->setLinearVelocity(velocity.bt());
 
@@ -136,6 +157,8 @@ public:
             float time = std::clamp(MaxSpeed / velocity.length() * 0.4f, 0.4f, 0.55f);
             m_nextStepTime = Entity::WorldTime + time;
         }
+
+        m_onGroundPrev = onGround;
     }
 
     Vector GetHeadPos() {
@@ -168,10 +191,13 @@ private:
     Input::Action* m_useAction;
     Audio::Sample* m_stepSounds[4];
     Audio::Source* m_stepSource;
+    bool m_onGroundPrev;
+    bool m_airJump;
     float m_nextStepTime;
     Camera m_camera;
     btCollisionShape* m_shape;
     btCollisionShape* m_trShape;
+    btCollisionShape* m_trFullShape;
     Vector m_lookAngles;
     Vector m_moveInput;
 };

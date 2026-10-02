@@ -101,6 +101,8 @@ Renderer::Renderer() {
 
     m_lightSphere = Model::LoadExternal("res/models/light.obj");
     m_reflection = new Cubemap("res/textures/sky");
+    m_subtitleText = "";
+    m_subtitleEndTime = 0.0f;
     
     m_font = Font::Load("res/fonts/raleway.ttf");
     
@@ -234,7 +236,22 @@ void Renderer::Draw() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // DrawText("stupid text", nullptr, 16, 0, 0);
+    if (!m_subtitleText.empty() && Entity::WorldTime < m_subtitleEndTime) {
+        float textWidth = GetTextWidth(m_subtitleText.c_str(), m_font, 32);
+        float scale = 1.0f;
+
+        if (textWidth > m_width) {
+            scale = (float)m_width / textWidth;
+        }
+
+        DrawText(
+            m_subtitleText.c_str(), m_font, 32 * scale,
+            m_width / 2, m_height - 64,
+            glm::vec4(1.0f), TextJustify(TextJustify::H::kCenter)
+        );
+    } else if (!m_subtitleText.empty() && Entity::WorldTime >= m_subtitleEndTime) {
+        m_subtitleText = "";
+    }
 }
 
 void Renderer::DrawLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
@@ -264,7 +281,14 @@ void Renderer::DrawText(const char* text, Font* font, int size, int x, int y, gl
     float sizeScalar = (float)size / font->GetSize();
     const Font::GlyphMap& glyphs = font->GetGlyphs();
 
-    int cx = x;
+    float cx = x;
+    if (just.horz == TextJustify::H::kCenter) {
+        cx -= GetTextWidth(text, font, size) * 0.5f;
+    } else if (just.horz == TextJustify::H::kRight) {
+        cx -= GetTextWidth(text, font, size);
+    }
+    x = cx;
+
     int i = 0;
     char ch;
     while ((ch = text[i++])) {
@@ -297,6 +321,11 @@ void Renderer::KillLights() {
         delete light;
     }
     m_lights.clear();
+}
+
+void Renderer::SetSubtitleText(std::string text, float duration) {
+    m_subtitleText = text;
+    m_subtitleEndTime = Entity::WorldTime + duration;
 }
 
 float Renderer::XNDC(int x) {
@@ -386,4 +415,27 @@ void Renderer::TextCharPosition(int x, int y, int w, int h) {
     glm::vec2 scale((float)w / m_width, (float)h / m_height);
     m_textShader->SetPosition(position);
     m_textShader->SetScale(scale);
+}
+
+float Renderer::GetTextWidth(const char* text, Font* font, int size) {
+    if (!font) {
+        font = m_font;
+    }
+
+    float sizeScalar = (float)size / font->GetSize();
+    const Font::GlyphMap& glyphs = font->GetGlyphs();
+
+    float width = 0.0f;
+    int i = 0;
+    char ch;
+    while ((ch = text[i++])) {
+        if (!glyphs.count(ch)) {
+            continue;
+        }
+
+        const Font::Glyph& glyph = glyphs.at(ch);
+        width += glyph.advance * sizeScalar;
+    }
+
+    return width;
 }

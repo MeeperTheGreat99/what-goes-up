@@ -95,3 +95,7 @@ void Window::SetMouseLocked(bool locked) {
     }
     SDL_SetWindowRelativeMouseMode(m_window, locked);
 }
+
+void Window::Maximize() {
+    SDL_MaximizeWindow(m_window);
+}

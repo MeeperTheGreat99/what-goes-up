@@ -45,6 +45,7 @@ public:
     void DrawText(const char* text, Font* font, int size, int x, int y, glm::vec4 color = glm::vec4(1.0f), TextJustify just = TextJustify());
     void Resize(unsigned int width, unsigned int height);
     void KillLights();
+    void SetSubtitleText(std::string text, float duration);
 
     void SetAudio(Audio* audio) {m_audio = audio;}
 
@@ -68,6 +69,8 @@ private:
     Model* m_lightSphere;
     Cubemap* m_reflection;
     std::vector<Light*> m_lights;
+    std::string m_subtitleText;
+    float m_subtitleEndTime;
     Font* m_font;
     Camera* m_camera;
     Audio* m_audio;
@@ -78,4 +81,5 @@ private:
     void DeleteFramebuffers();
     void RemakeFramebuffers();
     void TextCharPosition(int x, int y, int w, int h);
+    float GetTextWidth(const char* text, Font* font, int size);
 };
