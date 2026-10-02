@@ -6,6 +6,8 @@
 #define MATERIAL_FLAG_SPECULAR_TEXTURE (1 << 1)
 
 struct Material {
+    Material();
+
     unsigned char flags;
     union {
         Texture* texture;

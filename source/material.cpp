@@ -3,6 +3,10 @@
 #include <fstream>
 #include <sstream>
 
+Material::Material() {
+    memset(this, 0, sizeof(Material));
+}
+
 bool Material::Load(std::string filename, Material& out) {
     std::map<std::string, std::string> entries;
     std::string line;

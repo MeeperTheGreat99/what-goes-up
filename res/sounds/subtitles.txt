@@ -1,3 +1,3 @@
-res/sounds/voicelines/door_unlocked.wav=the quick brown fox jumps over the lazy dog
+res/sounds/voicelines/door_unlocked.wav=There's no way they leave the front door unlocked, right?
 res/sounds/voicelines/guessed_wrong.wav=Guess I was wrong...
 res/sounds/voicelines/keep_looking.wav=Hm, there's gotta be something more than this... I'm gonna keep looking.
