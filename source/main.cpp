@@ -66,16 +66,6 @@ int main(int argc, char* argv[]) {
     player->Spawn();
     renderer->SetCamera(&player->GetCamera());
 
-    Audio::Source* source = new Audio::Source(nullptr);
-    source->Set3D();
-    source->SetPos(player->GetPos());
-    Audio::Sequence* sequence = new Audio::Sequence(source);
-    sequence->AddSample(audio->LoadSample("res/sounds/voicelines/door_unlocked.wav"));
-    sequence->AddSample(audio->LoadSample("res/sounds/voicelines/guessed_wrong.wav"));
-    sequence->Play();
-
-    audio->SetReverb(EFX_REVERB_PRESET_ROOM);
-
     window->Maximize();
 
     Clock clock;
@@ -85,8 +75,6 @@ int main(int argc, char* argv[]) {
         float time = clock.GetElapsedTime();
         float delta = std::min(0.1f, time - last);
         accumulator += delta;
-
-        sequence->Update();
 
         while (accumulator >= logicPeriod) {
             physics->Update(logicPeriod);

@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+class ReverbZone;
+
 class Audio {
 public:
     struct Sample {
@@ -57,13 +59,17 @@ public:
     Sample* LoadSample(std::string filename);
     void SetListenerPos(Vector pos);
     void SetListenerDir(Vector dir);
-    void SetReverb(EFXEAXREVERBPROPERTIES reverb);
+    void SetReverbZone(ReverbZone* zone);
+    ReverbZone* GetReverbZone() { return m_reverbZone; }
 
 private:
     ALCdevice* m_device;
     ALCcontext* m_context;
     unsigned int m_auxSlot;
     unsigned int m_reverbEffect;
+    ReverbZone* m_reverbZone;
     std::map<std::string, Sample*> m_loadedSamples;
     std::map<std::string, std::string> m_subtitles;
+
+    void SetReverb(EFXEAXREVERBPROPERTIES reverb);
 };

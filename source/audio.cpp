@@ -2,6 +2,7 @@
 #include "SDL3/SDL_audio.h"
 #include "alhelpers.h"
 #include "renderer.h"
+#include "reverbzone.h"
 #include <AL/alext.h>
 #include <stdexcept>
 #include <fstream>
@@ -144,7 +145,11 @@ Audio::Audio() {
     palGenEffects(1, &m_reverbEffect);
     palEffecti(m_reverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
 
+    m_reverbZone = nullptr;
+
     Instance = this;
+
+    SetReverb(EFX_REVERB_PRESET_PLAIN);
 }
 
 Audio::~Audio() {
@@ -211,6 +216,13 @@ void Audio::SetListenerPos(Vector pos) {
 void Audio::SetListenerDir(Vector dir) {
     float orientation[6] = {dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f};
     alListenerfv(AL_ORIENTATION, orientation);
+}
+
+void Audio::SetReverbZone(ReverbZone *zone) {
+    m_reverbZone = zone;
+    if (zone) {
+        SetReverb(*zone->GetProperties());
+    }
 }
 
 void Audio::SetReverb(EFXEAXREVERBPROPERTIES reverb) {

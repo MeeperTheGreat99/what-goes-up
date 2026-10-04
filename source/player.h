@@ -39,6 +39,13 @@ public:
 
         m_stepSource = new Audio::Source(m_stepSounds[0]);
         m_stepSource->Set3D();
+
+        m_voice = new Audio::Source(nullptr);
+        m_voice->Set3D();
+        m_sequence = new Audio::Sequence(m_voice);
+        m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/door_unlocked.wav"));
+        m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/guessed_wrong.wav"));
+        m_sequence->Play();
         
         m_onGroundPrev = false;
         m_airJump = false;
@@ -65,6 +72,8 @@ public:
         PhysEntity::FrameUpdate(delta);
 
         m_stepSource->SetPos(GetPos());
+        m_voice->SetPos(GetPos());
+        m_sequence->Update();
         m_camera.SetPos(GetHeadPos());
         m_camera.SetAng(m_lookAngles);
 
@@ -191,6 +200,8 @@ private:
     Input::Action* m_useAction;
     Audio::Sample* m_stepSounds[4];
     Audio::Source* m_stepSource;
+    Audio::Source* m_voice;
+    Audio::Sequence* m_sequence;
     bool m_onGroundPrev;
     bool m_airJump;
     float m_nextStepTime;

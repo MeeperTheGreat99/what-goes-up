@@ -155,7 +155,7 @@ void Renderer::Draw() {
 
     for (auto& entry : Entity::Entities) {
         Entity* entity = entry.second;
-        if (entity->IsSpawned()) {
+        if (entity->IsSpawned() && entity->ShouldDraw()) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
             model *= glm::mat4_cast(entity->GetRot().gl());
             m_objectShader->SetModel(model);

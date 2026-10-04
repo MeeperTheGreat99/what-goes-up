@@ -63,6 +63,7 @@ public:
         return GetRot().toEulerAngles();
     }
 
+    virtual bool ShouldDraw() { return true; }
     void Draw(ObjectShader* shader) {
         if (m_model) {
             m_model->Draw(shader);

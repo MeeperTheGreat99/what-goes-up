@@ -1,4 +1,19 @@
-@SolidClass = worldspawn : "World entity" []
+@SolidClass = worldspawn : "World entity"
+[
+	message(string) : "Intro message"
+]
+
+@SolidClass = reverb_zone : "Reverb Zone"
+[
+	reverb(choices) : "Reverb Type" : 0 =
+	[
+		0 : "Generic"
+		1 : "Hallway"
+		2 : "Room"
+		3 : "Large Room"
+		4 : "Stairwell"
+	]
+]
 
 @BaseClass = Angles
 [
