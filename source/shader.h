@@ -162,6 +162,47 @@ protected:
     }
 };
 
+class ShadowShader : public Shader {
+public:
+    ShadowShader() : Shader("res/shaders/object.vs", "res/shaders/shadow.fs") {}
+
+    void SetProj(glm::mat4 proj) {
+        SetUniform(m_uProj, proj);
+    }
+
+    void SetView(glm::mat4 view) {
+        SetUniform(m_uView, view);
+    }
+
+    void SetModel(glm::mat4 model) {
+        SetUniform(m_uModel, model);
+    }
+
+    void SetLightPos(glm::vec3 pos) {
+        SetUniform(m_uLightPos, pos);
+    }
+
+    void SetFarPlane(float plane) {
+        SetUniform(m_uFarPlane, plane);
+    }
+
+protected:
+    int m_uProj;
+    int m_uView;
+    int m_uModel;
+    int m_uLightPos;
+    int m_uFarPlane;
+
+    virtual void Load() override {
+        Shader::Load();
+        m_uProj = GetUniformLocation("Proj");
+        m_uView = GetUniformLocation("View");
+        m_uModel = GetUniformLocation("Model");
+        m_uLightPos = GetUniformLocation("light_pos");
+        m_uFarPlane = GetUniformLocation("far_plane");
+    }
+};
+
 class LightSphereShader : public Shader {
 public:
     LightSphereShader() : Shader("res/shaders/object.vs", "res/shaders/lightsphere.fs") {}
