@@ -70,6 +70,25 @@ Renderer::Renderer() {
 
     CreateFramebuffers();
 
+    glGenTextures(1, &m_shadowCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_shadowCubemap);
+    for (unsigned int i = 0; i < 6; i++) {
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+            GL_DEPTH_COMPONENT, kShadowResolution, kShadowResolution,
+            0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+        );
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glGenFramebuffers(1, &m_shadowFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_shadowCubemap, 0);
+
     m_lineShader = new LineShader();
     m_lineShader->Finalize();
 
@@ -77,6 +96,9 @@ Renderer::Renderer() {
     m_objectShader->Finalize();
     m_objectShader->SetAlbedoTex(0);
     m_objectShader->SetNormalTex(1);
+
+    m_shadowShader = new ShadowShader();
+    m_shadowShader->Finalize();
 
     m_lightSphereShader = new LightSphereShader();
     m_lightSphereShader->Finalize();
@@ -119,6 +141,7 @@ Renderer::~Renderer() {
     delete m_screenShader;
     delete m_lightShader;
     delete m_lightSphereShader;
+    delete m_shadowShader;
     delete m_objectShader;
     delete m_lineShader;
 
@@ -148,20 +171,11 @@ void Renderer::Draw() {
     if (m_camera) {
         m_objectShader->SetProj(m_camera->GetProj());
         m_objectShader->SetView(m_camera->GetView());
-        m_objectShader->SetUniform(m_objectShader->GetUniformLocation("View"), m_camera->GetView());
         m_audio->SetListenerPos(m_camera->GetPos());
         m_audio->SetListenerDir(m_camera->GetAng().direction());
     }
 
-    for (auto& entry : Entity::Entities) {
-        Entity* entity = entry.second;
-        if (entity->IsSpawned() && entity->ShouldDraw()) {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
-            model *= glm::mat4_cast(entity->GetRot().gl());
-            m_objectShader->SetModel(model);
-            entity->Draw(m_objectShader);
-        }
-    }
+    DrawScene(false);
 
     // BEGIN DEFERRED LIGHTING PASS
 
@@ -191,7 +205,7 @@ void Renderer::Draw() {
     }
 
     for (Light* light : m_lights) {
-        float radius = sqrtf(light->GetIntensity() * 1024.0f);
+        float radius = light->GetRadius();
         glm::mat4 model(1.0f);
         model = glm::translate(model, light->GetPos().gl());
         model = glm::scale(model, glm::vec3(radius));
@@ -333,6 +347,22 @@ void Renderer::KillLights() {
 void Renderer::SetSubtitleText(std::string text, float duration) {
     m_subtitleText = text;
     m_subtitleEndTime = Entity::WorldTime + duration;
+}
+
+void Renderer::DrawScene(bool isShadowPass) {
+    for (auto& entry : Entity::Entities) {
+        Entity* entity = entry.second;
+        if (entity->IsSpawned() && entity->ShouldDraw()) {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
+            model *= glm::mat4_cast(entity->GetRot().gl());
+            if (isShadowPass) {
+                m_lightSphereShader->SetModel(model);
+            } else {
+                m_objectShader->SetModel(model);
+            }
+            entity->Draw(isShadowPass ? nullptr : m_objectShader);
+        }
+    }
 }
 
 float Renderer::XNDC(int x) {

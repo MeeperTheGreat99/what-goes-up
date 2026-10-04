@@ -36,6 +36,11 @@ Mesh::Mesh(
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 
     glBindVertexArray(0);
+
+    m_radius = 0.0f;
+    for (const Vertex& vertex : vertices) {
+        m_radius = std::max(vertex.position.length(), m_radius);
+    }
 }
 
 Mesh::~Mesh() {
@@ -103,7 +108,11 @@ Model* Model::LoadExternal(std::string filename) {
     return new Model(id.meshes);
 }
 
-Model::Model(const std::vector<Mesh*>& meshes) : m_meshes(meshes) {}
+Model::Model(const std::vector<Mesh*>& meshes) : m_meshes(meshes) {
+    for (Mesh* mesh : meshes) {
+        m_radius = std::max(mesh->GetRadius(), m_radius);
+    }
+}
 
 void Model::Draw(ObjectShader* shader) {
     for (Mesh* mesh : m_meshes) {

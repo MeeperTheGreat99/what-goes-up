@@ -16,16 +16,18 @@ public:
     ~Mesh();
 
     void Draw(ObjectShader* shader);
-    Material GetMaterial() const {return m_material;}
+    Material GetMaterial() const { return m_material; }
+    float GetRadius() const { return m_radius; }
 
-    const std::vector<Vertex>& GetVertices() const {return m_vertices;}
-    const std::vector<unsigned int>& GetIndices() const {return m_indices;}
+    const std::vector<Vertex>& GetVertices() const { return m_vertices; }
+    const std::vector<unsigned int>& GetIndices() const { return m_indices; }
 
 private:
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
     unsigned int m_vao, m_vbo, m_ebo;
     Material m_material;
+    float m_radius;
 };
 
 class Model {
@@ -37,7 +39,8 @@ public:
 
     void Draw(ObjectShader* shader = nullptr);
 
-    const std::vector<Mesh*>& GetMeshes() const {return m_meshes;}
+    const std::vector<Mesh*>& GetMeshes() const { return m_meshes; }
+    float GetRadius() const { return m_radius; }
 
 private:
     struct ImportData {
@@ -50,4 +53,5 @@ private:
     static Model* ErrorModel;
 
     std::vector<Mesh*> m_meshes;
+    float m_radius;
 };

@@ -140,7 +140,7 @@ public:
             }
 
             if (m_jumpAction->IsPressed()) {
-                velocity.y += 6.0f;
+                velocity.y += 4.0f;
                 onGround = false;
                 m_airJump = true;
             }

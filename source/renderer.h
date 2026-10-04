@@ -34,6 +34,8 @@ class Renderer {
 public:
     friend class Light;
 
+    static constexpr int kShadowResolution = 1024;
+
     static Renderer* Instance;
 
     Renderer();
@@ -60,9 +62,12 @@ private:
     unsigned int m_pingPongFBO[2];
     unsigned int m_pingPongTextures[2];
     unsigned int m_pingPongDepth[2];
+    unsigned int m_shadowCubemap;
+    unsigned int m_shadowFBO;
     bool m_pingPongState;
     LineShader* m_lineShader;
     ObjectShader* m_objectShader;
+    ShadowShader* m_shadowShader;
     LightSphereShader* m_lightSphereShader;
     LightShader* m_lightShader;
     Shader* m_screenShader;
@@ -76,6 +81,7 @@ private:
     Camera* m_camera;
     Audio* m_audio;
 
+    void DrawScene(bool isShadowPass);
     float XNDC(int x);
     float YNDC(int y);
     void CreateFramebuffers();
