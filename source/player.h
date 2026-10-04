@@ -32,6 +32,7 @@ public:
         m_leftAction = m_input->CreateAction(SDL_SCANCODE_A);
         m_jumpAction = m_input->CreateAction(SDL_SCANCODE_SPACE);
         m_useAction = m_input->CreateAction(SDL_SCANCODE_E);
+        m_spAction = m_input->CreateAction(SDL_SCANCODE_Q);
 
         for (int i = 0; i < 4; i++) {
             m_stepSounds[i] = Audio::Instance->LoadSample("res/sounds/footsteps/step" + std::to_string(i + 1) + ".wav");
@@ -45,7 +46,7 @@ public:
         m_sequence = new Audio::Sequence(m_voice);
         m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/door_unlocked.wav"));
         m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/guessed_wrong.wav"));
-        m_sequence->Play();
+        // m_sequence->Play();
         
         m_onGroundPrev = false;
         m_airJump = false;
@@ -73,7 +74,7 @@ public:
 
         m_stepSource->SetPos(GetPos());
         m_voice->SetPos(GetPos());
-        m_sequence->Update();
+        // m_sequence->Update();
         m_camera.SetPos(GetHeadPos());
         m_camera.SetAng(m_lookAngles);
 
@@ -102,6 +103,11 @@ public:
         float mx, my;
         
         PhysEntity::FixedUpdate(delta);
+
+        if (m_spAction->IsPressed()) {
+            m_voice->SetSample(Audio::Instance->LoadSample("res/sounds/voicelines/carl.wav"));
+            m_voice->Play();
+        }
 
         m_input->GetMouseDelta(mx, my);
         m_lookAngles += Vector(-my, -mx, 0.0f);
@@ -198,6 +204,7 @@ private:
     Input::Action* m_leftAction;
     Input::Action* m_jumpAction;
     Input::Action* m_useAction;
+    Input::Action* m_spAction;
     Audio::Sample* m_stepSounds[4];
     Audio::Source* m_stepSource;
     Audio::Source* m_voice;
