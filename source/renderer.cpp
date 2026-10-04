@@ -104,6 +104,7 @@ Renderer::Renderer() {
     m_lightSphereShader->Finalize();
     m_lightSphereShader->SetPositionTex(0);
     m_lightSphereShader->SetNormalTex(1);
+    m_lightSphereShader->SetShadowTex(2);
 
     m_lightShader = new LightShader();
     m_lightShader->Finalize();
@@ -179,18 +180,12 @@ void Renderer::Draw() {
 
     // BEGIN DEFERRED LIGHTING PASS
 
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_GREATER);
-
     m_pingPongState = false;
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
     glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glCullFace(GL_FRONT);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[0]);
@@ -203,22 +198,70 @@ void Renderer::Draw() {
         m_lightSphereShader->SetProj(m_camera->GetProj());
         m_lightSphereShader->SetView(m_camera->GetView());
     }
+    
+    glCullFace(GL_FRONT);
 
     for (Light* light : m_lights) {
         float radius = light->GetRadius();
+        Camera shadowCam;
+
+        shadowCam.SetNear(0.01f);
+        shadowCam.SetFar(radius);
+
+        m_shadowShader->Use();
+        m_shadowShader->SetProj(shadowCam.GetProj());
+        m_shadowShader->SetLightPos(light->GetPos().gl());
+        m_shadowShader->SetFarPlane(shadowCam.GetFar());
+
+        glm::mat4 cubemapCamMatrices[6] = {
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(light->GetPos().gl(), light->GetPos().gl() + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+        };
+
+        glViewport(0, 0, kShadowResolution, kShadowResolution);
+
+        for (int i = 0; i < 6; i++) {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_shadowFBO);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_shadowCubemap, 0);
+            glClear(GL_DEPTH_BUFFER_BIT);
+
+            m_shadowShader->SetView(cubemapCamMatrices[i]);
+
+            DrawScene(true);
+        }
+
+        glViewport(0, 0, m_width, m_height);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_shadowCubemap);
+
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_GREATER);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_pingPongFBO[m_pingPongState]);
         glm::mat4 model(1.0f);
         model = glm::translate(model, light->GetPos().gl());
         model = glm::scale(model, glm::vec3(radius));
+        m_lightSphereShader->Use();
         m_lightSphereShader->SetModel(model);
         m_lightSphereShader->SetLightPosition(light->GetPos().gl());
         m_lightSphereShader->SetLightColor(light->GetColor().gl() * light->GetIntensity());
+        m_lightSphereShader->SetLightFar(shadowCam.GetFar());
         m_lightSphere->Draw();
+
+        glDisable(GL_BLEND);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_TRUE);
     }
 
     glCullFace(GL_BACK);
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_TRUE);
+    
     m_pingPongState = !m_pingPongState;
 
     // END DEFERRED LIGHTING PASS
@@ -356,7 +399,7 @@ void Renderer::DrawScene(bool isShadowPass) {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
             model *= glm::mat4_cast(entity->GetRot().gl());
             if (isShadowPass) {
-                m_lightSphereShader->SetModel(model);
+                m_shadowShader->SetModel(model);
             } else {
                 m_objectShader->SetModel(model);
             }

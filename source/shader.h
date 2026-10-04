@@ -231,12 +231,20 @@ public:
         SetUniform(m_ugNormal, slot);
     }
 
+    void SetShadowTex(int slot) {
+        SetUniform(m_uShadowTex, slot);
+    }
+
     void SetLightPosition(glm::vec3 position) {
         SetUniform(m_uLightPosition, position);
     }
 
     void SetLightColor(glm::vec3 color) {
         SetUniform(m_uLightColor, color);
+    }
+
+    void SetLightFar(float far) {
+        SetUniform(m_uLightFar, far);
     }
 
 private:
@@ -246,8 +254,10 @@ private:
     int m_uResolution;
     int m_ugPosition;
     int m_ugNormal;
+    int m_uShadowTex;
     int m_uLightPosition;
     int m_uLightColor;
+    int m_uLightFar;
 
     virtual void Load() override {
         Shader::Load();
@@ -257,8 +267,10 @@ private:
         m_uResolution = GetUniformLocation("resolution");
         m_ugPosition = GetUniformLocation("gPosition");
         m_ugNormal = GetUniformLocation("gNormal");
+        m_uShadowTex = GetUniformLocation("shadow_tex");
         m_uLightPosition = GetUniformLocation("light_position");
         m_uLightColor = GetUniformLocation("light_color");
+        m_uLightFar = GetUniformLocation("light_far");
     }
 };
 

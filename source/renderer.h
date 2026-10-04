@@ -34,7 +34,7 @@ class Renderer {
 public:
     friend class Light;
 
-    static constexpr int kShadowResolution = 1024;
+    static constexpr int kShadowResolution = 256;
 
     static Renderer* Instance;
 

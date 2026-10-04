@@ -5,7 +5,7 @@
 
 class Camera {
 public:
-    Camera() : m_aspect(1.0f), m_fov(90), m_pDirty(true), m_vDirty(true) {}
+    Camera() : m_aspect(1.0f), m_fov(90), m_near(0.1f), m_far(100.0f), m_pDirty(true), m_vDirty(true) {}
 
     void SetAspect(float aspect) {
         m_aspect = aspect;
@@ -18,6 +18,18 @@ public:
         m_pDirty = true;
     }
     const float GetFOV() {return m_fov;}
+
+    void SetNear(float near) {
+        m_near = near;
+        m_pDirty = true;
+    }
+    const float GetNear() {return m_near;}
+
+    void SetFar(float far) {
+        m_far = far;
+        m_pDirty = true;
+    }
+    const float GetFar() {return m_far;}
 
     void SetPos(Vector pos) {
         m_pos = pos;
@@ -33,7 +45,7 @@ public:
 
     glm::mat4 GetProj() {
         if (m_pDirty) {
-            m_proj = glm::perspective(glm::radians(m_fov), m_aspect, 0.1f, 200.0f);
+            m_proj = glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far);
             m_pDirty = false;
         }
 
@@ -42,6 +54,7 @@ public:
 
     glm::mat4 GetView() {
         if (m_vDirty) {
+            Vector worldUp(0.0f, 1.0f, 0.0f);
             Vector forward = m_ang.direction();
             Vector right = forward.cross(Vector(0.0f, 1.0f, 0.0f));
             Vector up = right.cross(forward);
@@ -55,6 +68,7 @@ public:
 
 private:
     float m_aspect, m_fov;
+    float m_near, m_far;
     Vector m_pos, m_ang;
     bool m_pDirty, m_vDirty;
     glm::mat4 m_proj;
