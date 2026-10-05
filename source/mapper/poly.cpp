@@ -69,14 +69,14 @@ bool Poly::CalculatePlane() {
         return false;
     }
 
-    double length = plane.normal.length();
+    float length = plane.normal.length();
     if (length < MapConvert::Epsilon) {
         return false;
     }
 
     plane.normal = plane.normal.normalized();
 
-    double invCount = 1.0 / (double)vertices.size();
+    float invCount = 1.0 / (float)vertices.size();
     centerOfMass.x *= invCount;
     centerOfMass.y *= invCount;
     centerOfMass.z *= invCount;
@@ -91,7 +91,7 @@ void Poly::SortVerticesCCW() {
     for (int i = 0; i < vertices.size(); i++) {
         center += vertices.at(i).point;
     }
-    center /= (double)vertices.size();
+    center /= (float)vertices.size();
 
     Vector u = (vertices[0].point - center).normalized();
     Vector n = plane.normal.normalized();
@@ -100,8 +100,8 @@ void Poly::SortVerticesCCW() {
     std::sort(vertices.begin(), vertices.end(), [&](const auto& a, const auto& b) {
         Vector l = a.point - center;
         Vector r = b.point - center;
-        double angleL = atan2(l.dot(v), l.dot(u));
-        double angleR = atan2(r.dot(v), r.dot(u));
+        float angleL = atan2(l.dot(v), l.dot(u));
+        float angleR = atan2(r.dot(v), r.dot(u));
         return angleL < angleR;
     });
 
@@ -112,15 +112,15 @@ void Poly::SortVerticesCCW() {
     }
 }
 
-void Poly::CalculateUVs(int width, int height, Plane axes[2], double scales[2]) {
+void Poly::CalculateUVs(int width, int height, Plane axes[2], float scales[2]) {
     for (int i = 0; i < vertices.size(); i++) {
         Vector point = vertices[i].point;
 
-        double u = axes[0].normal.dot(point) / scales[0];
-        u = (u + axes[0].dist) / (double)width;
+        float u = axes[0].normal.dot(point) / scales[0];
+        u = (u + axes[0].dist) / (float)width;
 
-        double v = axes[1].normal.dot(point) / scales[1];
-        v = (v + axes[1].dist) / (double)height;
+        float v = axes[1].normal.dot(point) / scales[1];
+        v = (v + axes[1].dist) / (float)height;
 
         vertices[i].uv[0] = u;
         vertices[i].uv[1] = v;
@@ -171,7 +171,7 @@ void Poly::SplitPoly(Poly poly, Poly& front, Poly& back) {
 
         if (!ignore && classes[i] != classes[next]) {
             MapConvert::Vertex v;
-            double p;
+            float p;
 
             plane.GetIntersection(
                 poly.vertices.at(i).point,
@@ -198,7 +198,7 @@ void Poly::SplitPoly(Poly poly, Poly& front, Poly& back) {
 Poly::Classification Poly::ClassifyPoly(Poly& poly) {
     bool front = false;
     bool back = false;
-    double dist;
+    float dist;
 
     for (int i = 0; i < poly.vertices.size(); i++) {
         dist = plane.normal.dot(poly.vertices.at(i).point) + plane.dist;
@@ -340,7 +340,7 @@ std::vector<Poly> Poly::ClipToList(std::vector<Poly>& polys, Poly poly, bool cli
         return ClipToList(polys, poly, clipOnPlane, idx + 1);
     case ONPLANE: {
         return {poly};
-        double angle = me->plane.normal.dot(poly.plane.normal) - 1.0;
+        float angle = me->plane.normal.dot(poly.plane.normal) - 1.0;
         if (angle < MapConvert::Epsilon && angle > -MapConvert::Epsilon) {
             if (!clipOnPlane) {
                 return {poly};

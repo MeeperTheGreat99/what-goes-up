@@ -10,22 +10,22 @@ class MapConvert {
 public:
     struct Vertex {
         Vector point;
-        double uv[2];
+        float uv[2];
         size_t ID;
     };
 
     struct Face {
         Plane plane;
         Plane axes[2];
-        double scales[2];
+        float scales[2];
         struct {
             std::string name;
             int width, height;
         } texture;
     };
 
-    static constexpr double Epsilon = 0.00001;
-    static constexpr double BigEpsilon = 0.01;
+    static constexpr float Epsilon = 0.00001f;
+    static constexpr float BigEpsilon = 0.01f;
     
     static size_t VertexID;
 

@@ -169,14 +169,17 @@ void Renderer::Draw() {
 
     m_objectShader->Use();
 
+    Camera::Frustum camFrustum;
+
     if (m_camera) {
         m_objectShader->SetProj(m_camera->GetProj());
         m_objectShader->SetView(m_camera->GetView());
+        camFrustum = Camera::Frustum::FromCamera(*m_camera);
         m_audio->SetListenerPos(m_camera->GetPos());
         m_audio->SetListenerDir(m_camera->GetAng().direction());
     }
 
-    DrawScene(false);
+    DrawScene(false, m_camera ? &camFrustum : nullptr);
 
     // BEGIN DEFERRED LIGHTING PASS
 
@@ -203,6 +206,14 @@ void Renderer::Draw() {
 
     for (Light* light : m_lights) {
         float radius = light->GetRadius();
+
+        if (m_camera) {
+            camFrustum.renderPos = light->GetPos();
+            if (!camFrustum.ClassifySphere(0.0f, radius)) {
+                continue;
+            }
+        }
+
         Camera shadowCam;
 
         shadowCam.SetNear(0.01f);
@@ -231,7 +242,7 @@ void Renderer::Draw() {
 
             m_shadowShader->SetView(cubemapCamMatrices[i]);
 
-            DrawScene(true);
+            DrawScene(true, nullptr);
         }
 
         glViewport(0, 0, m_width, m_height);
@@ -392,19 +403,28 @@ void Renderer::SetSubtitleText(std::string text, float duration) {
     m_subtitleEndTime = Entity::WorldTime + duration;
 }
 
-void Renderer::DrawScene(bool isShadowPass) {
+void Renderer::DrawScene(bool isShadowPass, Camera::Frustum* frustum) {
     for (auto& entry : Entity::Entities) {
         Entity* entity = entry.second;
-        if (entity->IsSpawned() && entity->ShouldDraw()) {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
-            model *= glm::mat4_cast(entity->GetRot().gl());
-            if (isShadowPass) {
-                m_shadowShader->SetModel(model);
-            } else {
-                m_objectShader->SetModel(model);
-            }
-            entity->Draw(isShadowPass ? nullptr : m_objectShader);
+        
+        if (!entity->IsSpawned() || !entity->ShouldDraw()) {
+            continue;
         }
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->GetPos().gl());
+        model *= glm::mat4_cast(entity->GetRot().gl());
+        
+        if (isShadowPass) {
+            m_shadowShader->SetModel(model);
+        } else {
+            m_objectShader->SetModel(model);
+        }
+
+        if (frustum) {
+            frustum->renderPos = entity->GetPos();
+        }
+
+        entity->Draw(isShadowPass ? nullptr : m_objectShader, frustum);
     }
 }
 

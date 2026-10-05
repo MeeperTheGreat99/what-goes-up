@@ -6,9 +6,21 @@ Plane::Plane() {
     this->dist = 0.0;
 }
 
-Plane::Plane(Vector normal, double dist) {
+Plane::Plane(Vector normal, float dist) {
     this->normal = normal.normalized();
     this->dist = dist;
+}
+
+Plane::Plane(glm::vec4 vec) {
+    normal = Vector(glm::vec3(vec));
+    float length = normal.length();
+    normal /= length;
+    dist = vec.w / length;
+}
+
+Plane::Plane(Vector point, Vector normal) {
+    this->normal = normal.normalized();
+    dist = -this->normal.dot(point);
 }
 
 Plane::Plane(Vector p0, Vector p1, Vector p2) {
@@ -16,12 +28,12 @@ Plane::Plane(Vector p0, Vector p1, Vector p2) {
     dist = -normal.dot(p0);
 }
 
-double Plane::GetDistance(Vector p) {
+float Plane::GetDistance(Vector p) {
     return normal.dot(p) + dist;
 }
 
 Plane::Classification Plane::Classify(Vector p) {
-    double dist = GetDistance(p);
+    float dist = GetDistance(p);
 
     if (dist > MapConvert::Epsilon) {
         return FRONT;
@@ -63,15 +75,15 @@ bool Plane::GetIntersection(Plane plane0, Plane plane1, Vector& p) {
     return true;
 }
 
-bool Plane::GetIntersection(Vector start, Vector end, Vector& intersection, double& percent) {
+bool Plane::GetIntersection(Vector start, Vector end, Vector& intersection, float& percent) {
     Vector dir = (end - start).normalized();
 
-    double denom = normal.dot(dir);
+    float denom = normal.dot(dir);
     if (abs(denom) < MapConvert::Epsilon) {
         return false;
     }
 
-    double num = -GetDistance(start);
+    float num = -GetDistance(start);
     percent = num / denom;
     intersection = start + dir * percent;
     percent = percent / (end - start).length();
@@ -80,6 +92,6 @@ bool Plane::GetIntersection(Vector start, Vector end, Vector& intersection, doub
 }
 
 Vector Plane::Project(Vector p) {
-    double sigd = GetDistance(p);
+    float sigd = GetDistance(p);
     return p - normal * sigd;
 }

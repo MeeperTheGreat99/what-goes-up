@@ -37,9 +37,17 @@ Mesh::Mesh(
 
     glBindVertexArray(0);
 
-    m_radius = 0.0f;
+    m_centroid = 0.0f;
+
     for (const Vertex& vertex : vertices) {
-        m_radius = std::max(vertex.position.length(), m_radius);
+        m_centroid += vertex.position;
+    }
+
+    m_centroid /= (float)vertices.size();
+    m_radius = 0.0f;
+
+    for (const Vertex& vertex : vertices) {
+        m_radius = std::max((vertex.position - m_centroid).length(), m_radius);
     }
 }
 
@@ -114,8 +122,14 @@ Model::Model(const std::vector<Mesh*>& meshes) : m_meshes(meshes) {
     }
 }
 
-void Model::Draw(ObjectShader* shader) {
+void Model::Draw(ObjectShader* shader, Camera::Frustum* frustum) {
     for (Mesh* mesh : m_meshes) {
+        if (frustum) {
+            if (!frustum->ClassifySphere(mesh->GetCentroid(), mesh->GetRadius())) {
+                continue;
+            }
+        }
+
         mesh->Draw(shader);
     }
 }

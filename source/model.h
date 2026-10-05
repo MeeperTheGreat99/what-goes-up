@@ -1,4 +1,5 @@
 #pragma once
+#include "camera.h"
 #include "material.h"
 #include "shader.h"
 #include "vertex.h"
@@ -17,6 +18,7 @@ public:
 
     void Draw(ObjectShader* shader);
     Material GetMaterial() const { return m_material; }
+    Vector GetCentroid() const { return m_centroid; }
     float GetRadius() const { return m_radius; }
 
     const std::vector<Vertex>& GetVertices() const { return m_vertices; }
@@ -27,6 +29,7 @@ private:
     std::vector<unsigned int> m_indices;
     unsigned int m_vao, m_vbo, m_ebo;
     Material m_material;
+    Vector m_centroid;
     float m_radius;
 };
 
@@ -37,7 +40,7 @@ public:
 
     Model(const std::vector<Mesh*>& meshes);
 
-    void Draw(ObjectShader* shader = nullptr);
+    void Draw(ObjectShader* shader = nullptr, Camera::Frustum* frustum = nullptr);
 
     const std::vector<Mesh*>& GetMeshes() const { return m_meshes; }
     float GetRadius() const { return m_radius; }

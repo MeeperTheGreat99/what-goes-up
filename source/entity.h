@@ -64,10 +64,14 @@ public:
     }
 
     virtual bool ShouldDraw() { return true; }
-    void Draw(ObjectShader* shader) {
+    void Draw(ObjectShader* shader, Camera::Frustum* frustum = nullptr) {
         if (m_model) {
-            m_model->Draw(shader);
+            m_model->Draw(shader, frustum);
         }
+    }
+
+    float GetModelRadius() {
+        return m_model ? m_model->GetRadius() : 0.0f;
     }
 
     virtual void ApplyProperty(std::string key, std::string value) {

@@ -13,7 +13,7 @@ public:
 
     bool CalculatePlane();
     void SortVerticesCCW();
-    void CalculateUVs(int width, int height, Plane axes[2], double scales[2]);
+    void CalculateUVs(int width, int height, Plane axes[2], float scales[2]);
     void SplitPoly(Poly poly, Poly& front, Poly& back);
     Classification ClassifyPoly(Poly& poly);
     std::vector<Poly> Triangulate();

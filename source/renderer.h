@@ -81,7 +81,7 @@ private:
     Camera* m_camera;
     Audio* m_audio;
 
-    void DrawScene(bool isShadowPass);
+    void DrawScene(bool isShadowPass, Camera::Frustum* frustum);
     float XNDC(int x);
     float YNDC(int y);
     void CreateFramebuffers();

@@ -126,6 +126,17 @@ public:
         return result.normalized();
     }
 
+    Vector angles() const {
+        Vector dir = normalized();
+        Vector angles;
+    
+        angles.x = glm::degrees(asin(dir.y));
+        angles.y = glm::degrees(atan2(-dir.z, dir.x));
+        angles.z = 0.0f; 
+
+        return angles;
+    }
+
     // Convert the vector to an OpenGL/glm vector
     const glm::vec3 gl() const {return glm::vec3(x, y, z);}
     // Convert the vector to a Bullet vector
