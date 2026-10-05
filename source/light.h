@@ -18,7 +18,7 @@ public:
     void SetIntensity(float intensity) { m_intensity = intensity; }
     float GetIntensity() const { return m_intensity; }
 
-    float GetRadius() const { return sqrtf(m_intensity * 256.0f); }
+    float GetRadius() const { return sqrtf(m_intensity * 128.0f); }
 
 private:
     bool m_enabled = true;

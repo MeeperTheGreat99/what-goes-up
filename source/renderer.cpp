@@ -194,6 +194,8 @@ void Renderer::Draw() {
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[0]);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_gBufferTextures[1]);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_shadowCubemap);
 
     m_lightSphereShader->Use();
     m_lightSphereShader->SetResolution(glm::vec2((float)m_width, (float)m_height));
@@ -201,8 +203,6 @@ void Renderer::Draw() {
         m_lightSphereShader->SetProj(m_camera->GetProj());
         m_lightSphereShader->SetView(m_camera->GetView());
     }
-    
-    glCullFace(GL_FRONT);
 
     for (Light* light : m_lights) {
         float radius = light->GetRadius();
@@ -216,6 +216,7 @@ void Renderer::Draw() {
 
         Camera shadowCam;
 
+        shadowCam.SetPos(light->GetPos());
         shadowCam.SetNear(0.01f);
         shadowCam.SetFar(radius);
 
@@ -234,24 +235,35 @@ void Renderer::Draw() {
         };
 
         glViewport(0, 0, kShadowResolution, kShadowResolution);
+        glCullFace(GL_FRONT);
 
         for (int i = 0; i < 6; i++) {
             glBindFramebuffer(GL_FRAMEBUFFER, m_shadowFBO);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_shadowCubemap, 0);
             glClear(GL_DEPTH_BUFFER_BIT);
 
+            glm::vec3 dir = -glm::normalize(glm::vec3(cubemapCamMatrices[i][0][2], cubemapCamMatrices[i][1][2], cubemapCamMatrices[i][2][2]));
+            shadowCam.SetAng(Vector(dir).angles());
+            Camera::Frustum frustum = Camera::Frustum::FromCamera(shadowCam);
             m_shadowShader->SetView(cubemapCamMatrices[i]);
 
-            DrawScene(true, nullptr);
+            // DrawScene(true, &frustum);
         }
 
         glViewport(0, 0, m_width, m_height);
 
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_shadowCubemap);
+        if (m_camera) {
+            bool inside = (m_camera->GetPos() - light->GetPos()).length2() < radius * radius;
+            if (!inside) {
+                glDepthFunc(GL_LEQUAL);
+                glCullFace(GL_BACK);
+            } else {
+                glDepthFunc(GL_GREATER);
+                glCullFace(GL_FRONT);
+            }
+        }
 
         glDepthMask(GL_FALSE);
-        glDepthFunc(GL_GREATER);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
 
