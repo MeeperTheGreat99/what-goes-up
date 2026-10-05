@@ -9,12 +9,17 @@ public:
         m_shape = PhysicsWorld::ShapeFromModel(m_model, false);
         InitializeRigidbody(m_shape, 1.0f);
     }
+
     virtual void Clean() override {
         PhysEntity::Clean();
         PhysicsWorld::SafeDeleteShape(m_shape);
     }
+
+    std::string GetName() const { return m_name; }
+
 protected:
     std::string m_name = "";
+
 private:
     btCollisionShape* m_shape = nullptr;
 }; 

@@ -8,19 +8,7 @@ public:
     ~PhysEntity() {
         DestroyRigidbody();
     }
-
-    Vector GetMotionStatePos() const {
-        btTransform transform;
-        m_motionState->getWorldTransform(transform);
-        return transform.getOrigin();
-    }
-
-    Vector GetMotionStateAngles() const {
-        btTransform transform;
-        m_motionState->getWorldTransform(transform);
-        return Quaternion(transform.getRotation()).toEulerAngles();
-    }
-
+    
     virtual void SetPos(Vector pos) override {
         Entity::SetPos(pos);
         if (m_rigidbody) {
@@ -68,6 +56,17 @@ public:
 
         if (m_rigidbody) {
             World->world->removeRigidBody(m_rigidbody);
+        }
+    }
+
+    void SetCollisionEnabled(bool enabled) {
+        if (m_rigidbody) {
+            unsigned int flags = m_rigidbody->getCollisionFlags();
+            if (enabled) {
+                m_rigidbody->setCollisionFlags(flags & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            } else {
+                m_rigidbody->setCollisionFlags(flags | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+            }
         }
     }
 

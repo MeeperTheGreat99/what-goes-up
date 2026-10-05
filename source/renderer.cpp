@@ -341,7 +341,7 @@ void Renderer::Draw() {
 
     if (!m_infoText.empty()) {
         DrawText(
-            m_infoText.c_str(), m_font, 32,
+            m_infoText.c_str(), m_font, 24,
             m_width / 2, m_height / 2 + 32,
             glm::vec4(1.0f), TextJustify::H::kCenter
         );

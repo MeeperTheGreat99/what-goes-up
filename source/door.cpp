@@ -27,7 +27,7 @@ void Door::ApplyProperty(std::string key, std::string value) {
 void Door::Spawn() {
     PhysEntity::Spawn();
 
-    glm::quat delta = Quaternion::fromEulerAngles(Vector(0, m_direction ? 270 : 90, 0)).gl();
+    glm::quat delta = Quaternion::fromEulerAngles(Vector(0, m_direction ? 90 : 270, 0)).gl();
     m_audioSource = new Audio::Source(nullptr);
     m_audioSource->Set3D();
     m_squeakSource = new Audio::Source(Audio::Instance->LoadSample("res/sounds/environment/door_squeak.wav"));
@@ -39,6 +39,7 @@ void Door::Spawn() {
     m_openFraction = 0.0f;
     m_moving = false;
     m_open = false;
+    m_useText = "Use Door";
 
     InitializeRigidbody(m_shape, 0.0f);
 }

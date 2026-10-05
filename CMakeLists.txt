@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-target_link_options(${PROJECT_NAME} PRIVATE -static-libstdc++)
+target_link_options(${PROJECT_NAME} PUBLIC -static-libgcc -static-libstdc++)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/SDL/include

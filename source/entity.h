@@ -110,6 +110,8 @@ public:
             m_target = value;
         } else if (key == "triggertype") {
             m_triggerType = std::stoi(value);
+        } else if (key == "usetxt") {
+            m_useText = value;
         }
     }
 
@@ -147,7 +149,9 @@ public:
         }
     }
 
-    bool IsSpawned() const {return m_spawned;}
+    std::string GetUseText() const { return m_useText; }
+
+    bool IsSpawned() const { return m_spawned; }
 
     // Called every frame
     virtual void FrameUpdate(float delta) {}
@@ -161,6 +165,7 @@ protected:
     std::string m_target;
     int m_triggerType;
     bool m_triggerState;
+    std::string m_useText;
 
 private:
     EID m_id;

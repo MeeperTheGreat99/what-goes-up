@@ -1103,7 +1103,7 @@
 }
 {
 "classname" "info_player_start"
-"angles" "0 90 0"
+"angles" "0 0 0"
 "origin" "33 80 45"
 }
 {
@@ -1138,7 +1138,7 @@
 {
 "classname" "prop_door"
 "spawnflags" "1"
-"angles" "0 90 0"
+"angles" "0 270 0"
 "model" "1"
 "speed" "2"
 "direction" "1"
@@ -1148,7 +1148,7 @@
 {
 "classname" "prop_door"
 "spawnflags" "1"
-"angles" "0 90 0"
+"angles" "0 270 0"
 "model" "2"
 "speed" "2"
 "identifier" "lobby_doors_left"
@@ -1172,7 +1172,7 @@
 }
 {
 "classname" "prop_door"
-"angles" "0 270 0"
+"angles" "0 90 0"
 "model" "1"
 "speed" "2"
 "direction" "1"
@@ -1180,7 +1180,7 @@
 }
 {
 "classname" "prop_door"
-"angles" "0 270 0"
+"angles" "0 90 0"
 "model" "2"
 "speed" "2"
 "origin" "256 288 16"
@@ -1209,14 +1209,14 @@
 }
 {
 "classname" "prop_door"
-"angles" "0 90 0"
+"angles" "0 270 0"
 "model" "2"
 "speed" "2"
 "origin" "-192 352 -120"
 }
 {
 "classname" "prop_door"
-"angles" "0 90 0"
+"angles" "0 270 0"
 "model" "1"
 "speed" "2"
 "direction" "1"
@@ -1936,7 +1936,7 @@
 "identifier" "theelevator"
 "child" "ev_button_up"
 "travel" "0 0 -136"
-"speed" "3"
+"speed" "1"
 "firstdoor" "ev_door_lvg"
 "seconddoor" "ev_door_lvb"
 {

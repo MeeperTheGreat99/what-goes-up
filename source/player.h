@@ -8,10 +8,10 @@ class Player : public PhysEntity {
 public:
     struct {
         std::vector <Item*> items;
-    } inventory;
+    } m_inventory;
 
     static constexpr float Friction = 8.0f;
-    static constexpr float MaxSpeed = 8.0f;
+    static constexpr float MaxSpeed = 6.0f;
     static constexpr float MaxStepHeight = 0.25f;
     static constexpr float Reach = 2.0f;
     static constexpr float Mass = 80.0f;
@@ -57,6 +57,8 @@ public:
         m_rigidbody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
         m_rigidbody->setFriction(0.0f);
         m_rigidbody->setSleepingThresholds(0.0f, 0.0f);
+        m_useEnt = nullptr;
+        m_heldItem = nullptr;
     }
 
     virtual void Clean() override {
@@ -77,6 +79,14 @@ public:
         // m_sequence->Update();
         m_camera.SetPos(GetHeadPos());
         m_camera.SetAng(m_lookAngles);
+
+        if (m_heldItem) {
+            Vector right = m_lookAngles.direction().cross(Vector(0, 1, 0)).normalized();
+            Vector up = right.cross(m_lookAngles.direction()).normalized();
+            m_heldItem->SetPos(GetHeadPos() + m_lookAngles.direction() * 0.25f + right * 0.35f - up * 0.2f);
+            m_heldItem->SetAngles(m_lookAngles + Vector(70, 0, 0));
+            printf("ang %f %f %f\n", m_lookAngles.x, m_lookAngles.y, m_lookAngles.z);
+        }
 
         m_moveInput = Vector(0.0f, 0.0f, 0.0f);
 
@@ -110,7 +120,7 @@ public:
         }
 
         m_input->GetMouseDelta(mx, my);
-        m_lookAngles += Vector(-my, -mx, 0.0f);
+        m_lookAngles += Vector(-my, mx, 0.0f);
         m_lookAngles.x = std::clamp(m_lookAngles.x, -89.99f, 89.99f);
 
         Vector angles = Vector(0, m_lookAngles.y, 0);
@@ -156,9 +166,17 @@ public:
 
 
         m_rigidbody->setLinearVelocity(velocity.bt());
+        UseTrace();
 
-        if (m_useAction->IsPressed()) {
-            TryUse();
+        if (m_useAction->IsPressed() && m_useEnt) {
+            Item* item = dynamic_cast<Item*>(m_useEnt);
+            if (item) {
+                item->SetCollisionEnabled(false);
+                m_inventory.items.push_back(item);
+                m_heldItem = item;
+            } else {
+                m_useEnt->Use(true);
+            }
         }
 
         if (onGround && Entity::WorldTime >= m_nextStepTime && velocity.length2() > 0.1f) {
@@ -180,15 +198,33 @@ public:
         return GetPos() + Vector(0.0f, CollisionHeight * 0.5f + ViewOfs, 0.0f);
     }
 
-    void TryUse() {
+    void UseTrace() {
         PhysicsWorld::TraceResult result;
         Vector forward = m_lookAngles.direction();
         Vector start = GetHeadPos();
+        
         if (PhysicsWorld::TraceLine(start, start + forward * Reach, result)) {
-            Entity* entity = result.entity;
-            if (entity) {
-                entity->Use(true);
+            m_useEnt = result.entity;
+        } else {
+            m_useEnt = nullptr;
+        }
+
+        if (m_useEnt) {
+            std::string useText;
+            Item* item = dynamic_cast<Item*>(m_useEnt);
+            if (item) {
+                useText = "Pick up " + item->GetName();
+            } else {
+                useText = m_useEnt->GetUseText();
             }
+            
+            if (!useText.empty()) {
+                Renderer::Instance->SetInfoText("[E] " + useText);
+            } else {
+                Renderer::Instance->SetInfoText("");
+            }
+        } else {
+            Renderer::Instance->SetInfoText("");
         }
     }
 
@@ -218,4 +254,6 @@ private:
     btCollisionShape* m_trFullShape;
     Vector m_lookAngles;
     Vector m_moveInput;
+    Entity* m_useEnt;
+    Item* m_heldItem;
 };

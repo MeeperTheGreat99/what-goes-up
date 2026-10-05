@@ -57,7 +57,7 @@ void Elevator::FixedUpdate(float delta) {
     Vector target = m_triggerState ? m_secondPosition : m_firstPosition;
     Vector movement = (target - GetPos()).normalized() * m_speed * delta;
     
-    if ((movement.length2() > (target - GetPos()).length2())) {
+    if ((movement.length2() > (target - GetPos()).length2()) || GetPos() == target) {
         SetPos(target);
         MoveDoor(m_triggerState ? m_secondDoor : m_firstDoor, true);
 

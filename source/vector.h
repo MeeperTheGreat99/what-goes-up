@@ -120,8 +120,8 @@ public:
         float sinYaw = sin(glm::radians(y)), cosYaw = cos(glm::radians(y));
         float sinPitch = sin(glm::radians(x)), cosPitch = cos(glm::radians(x));
         Vector result;
-        result.x = cosYaw * cosPitch;
-        result.z = -sinYaw * cosPitch;
+        result.x = sinYaw * cosPitch;
+        result.z = -cosYaw * cosPitch;
         result.y = sinPitch;
         return result.normalized();
     }
@@ -214,7 +214,7 @@ public:
     }
 
     static Quaternion fromEulerAngles(Vector angles) {
-        return glm::quat(glm::radians(angles.gl()));
+        return glm::quat(glm::radians(angles.gl() * glm::vec3(1, -1, 1)));
     }
 
     const glm::quat gl() const {return glm::quat(w, x, y, z);}
