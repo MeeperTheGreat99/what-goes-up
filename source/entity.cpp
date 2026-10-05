@@ -11,6 +11,10 @@ Entity* Entity::Create(std::string classname) {
 std::vector<Entity*> Entity::FindTargets(std::string target) {
     std::vector<Entity*> targets;
 
+    if (target.empty()) {
+        return {};
+    }
+
     for (auto& entry : Entities) {
         Entity* entity = entry.second;
         if (entity->m_identifier == target) {

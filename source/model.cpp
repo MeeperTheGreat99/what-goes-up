@@ -192,9 +192,9 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
             }
         }
 
-        if (material->Get(AI_MATKEY_ROUGHNESS_FACTOR, mat.reflectivity) == aiReturn_SUCCESS) {
+        /* if (material->Get(AI_MATKEY_ROUGHNESS_FACTOR, mat.reflectivity) == aiReturn_SUCCESS) {
             mat.reflectivity = 1.0f - mat.reflectivity;
-        }
+        } */
 
         id.meshes.push_back(new Mesh(vertices, indices, mat));
     }
@@ -205,14 +205,15 @@ void Model::ProcessNode(const aiScene* scene, aiNode* node, ImportData& id) {
 }
 
 Texture* Model::FetchTexture(const aiScene* scene, aiMaterial* material, aiTextureType type) {
-    bool srgb = type == aiTextureType_DIFFUSE;
+    // bool srgb = type == aiTextureType_DIFFUSE;
+    bool srgb = false;
 
     aiString texpath;
     if (material->GetTexture(type, 0, &texpath) == aiReturn_SUCCESS) {
         const aiTexture* texture = scene->GetEmbeddedTexture(texpath.C_Str());
         if (texture) {
             if (!texture->mHeight) {
-                return nullptr;//Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb, true);
+                return Texture::LoadMemory((unsigned char*)texture->pcData, texture->mWidth, srgb, true);
             } else {
                 unsigned char* data = new unsigned char[texture->mWidth * texture->mHeight * 4];
                 for (int i = 0; i < texture->mWidth * texture->mHeight; i++) {

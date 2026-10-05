@@ -31,7 +31,9 @@ public:
         }
 
         m_model = nullptr;
+        m_spawnflags = 0;
         m_id = id;
+        m_spawned = false;
         m_pos = 0.0f;
         m_rot = Quaternion();
         m_parent = nullptr;
@@ -90,7 +92,9 @@ public:
     }
 
     virtual void ApplyProperty(std::string key, std::string value) {
-        if (key == "origin") {
+        if (key == "spawnflags") {
+            m_spawnflags = std::stoi(value);
+        } else if (key == "origin") {
             SetPos(Vector::fromOrigin(value));
         } else if (key == "angles") {
             SetAngles(Vector::fromAngles(value));
@@ -152,6 +156,7 @@ public:
 
 protected:
     Model* m_model;
+    unsigned int m_spawnflags;
     std::string m_identifier;
     std::string m_target;
     int m_triggerType;

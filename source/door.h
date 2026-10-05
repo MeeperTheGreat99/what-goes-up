@@ -14,11 +14,13 @@ public:
 private:
     Audio::Sample* m_openSound;
     Audio::Sample* m_closeSound;
-    Audio::Sample* m_squeakSound;
+    Audio::Sample* m_lockedSound;
     Audio::Source* m_audioSource;
+    Audio::Source* m_squeakSource;
     float m_speed;
     bool m_modelFlip;
     bool m_direction = false;
+    bool m_locked = false;
     btCollisionShape* m_shape;
     Quaternion m_initialRot;
     Quaternion m_openRot;
