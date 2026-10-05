@@ -34,10 +34,16 @@ public:
         m_id = id;
         m_pos = 0.0f;
         m_rot = Quaternion();
+        m_parent = nullptr;
         Entities[id] = this;
     }
 
     virtual ~Entity() {
+        if (m_parent) {
+            auto find = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this);
+            m_parent->m_children.erase(find);
+        }
+
         if (m_spawned) {
             Clean();
         }
@@ -51,7 +57,15 @@ public:
 
     EID GetID() const {return m_id;}
 
-    virtual void SetPos(Vector pos) {m_pos = pos;}
+    virtual void SetPos(Vector pos) {
+        Vector delta = pos - m_pos;
+
+        m_pos = pos;
+
+        for (Entity* child : m_children) {
+            child->SetPos(child->GetPos() + delta);
+        }
+    }
     virtual Vector GetPos() const {return m_pos;}
 
     virtual void SetRot(Quaternion rot) {m_rot = rot;}
@@ -80,6 +94,12 @@ public:
             SetPos(Vector::fromOrigin(value));
         } else if (key == "angles") {
             SetAngles(Vector::fromAngles(value));
+        } else if (key == "child") {
+            m_children = FindTargets(value);
+            
+            for (Entity* child : m_children) {
+                child->m_parent = this;
+            }
         } else if (key == "identifier") {
             m_identifier = value;
         } else if (key == "target") {
@@ -142,6 +162,8 @@ private:
     bool m_spawned;
     Vector m_pos;
     Quaternion m_rot;
+    Entity* m_parent;
+    std::vector<Entity*> m_children;
 };
 
 class EntityFactory {

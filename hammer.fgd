@@ -20,6 +20,11 @@
 	angles(string) : "Pitch(X) Yaw(Y) Roll(Z)" : "0 0 0"
 ]
 
+@BaseClass = Parent
+[
+	child(string) : "Child Entity Identifier"
+]
+
 @BaseClass = Targetable
 [
 	identifier(string) : "Unique Identifier" : ""
@@ -93,4 +98,12 @@
 	distmult(string) : "Move Distance Multiplier" : "1"
 ]
 
-@SolidClass base(Trigger, Usable) = button : "Button" []
+@SolidClass base(Targetable, Parent) = elevator : "Elevator"
+[
+	travel(string) : "Travel Delta" : "0 0 0"
+	speed(string) : "Movement Speed" : "1"
+	firstdoor(string) : "First Door Entity Identifier"
+	seconddoor(string) : "Second Door Entity Identifier"
+]
+
+@SolidClass base(Targetable, Trigger, Usable, Parent) = button : "Button" []
