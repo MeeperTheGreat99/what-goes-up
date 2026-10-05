@@ -8,6 +8,19 @@ Entity* Entity::Create(std::string classname) {
     return EntityFactory::Instance().Create(classname);
 }
 
+std::vector<Entity*> Entity::FindTargets(std::string target) {
+    std::vector<Entity*> targets;
+
+    for (auto& entry : Entities) {
+        Entity* entity = entry.second;
+        if (entity->m_identifier == target) {
+            targets.push_back(entity);
+        }
+    }
+
+    return targets;
+}
+
 EntityFactory& EntityFactory::Instance() {
     static EntityFactory instance;
     return instance;

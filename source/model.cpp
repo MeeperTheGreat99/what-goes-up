@@ -117,8 +117,15 @@ Model* Model::LoadExternal(std::string filename) {
 }
 
 Model::Model(const std::vector<Mesh*>& meshes) : m_meshes(meshes) {
+    m_min = meshes[0]->GetVertices()[0].position;
+    m_max = meshes[0]->GetVertices()[0].position;
     for (Mesh* mesh : meshes) {
         m_radius = std::max(mesh->GetRadius(), m_radius);
+        
+        for (const Vertex& v : mesh->GetVertices()) {
+            m_min = Vector::min(m_min, v.position);
+            m_max = Vector::max(m_max, v.position);
+        }
     }
 }
 

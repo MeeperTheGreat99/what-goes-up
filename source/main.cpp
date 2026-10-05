@@ -8,6 +8,7 @@
 #include "physics.h"
 #include "renderer.h"
 #include "window.h"
+#include "evelator.h"
 #include <SDL3/SDL_main.h>
 #include <ctime>
 #include <exception>

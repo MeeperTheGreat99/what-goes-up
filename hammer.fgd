@@ -20,11 +20,32 @@
 	angles(string) : "Pitch(X) Yaw(Y) Roll(Z)" : "0 0 0"
 ]
 
+@BaseClass = Targetable
+[
+	identifier(string) : "Unique Identifier" : ""
+]
+
+@BaseClass = Trigger
+[
+	target(string) : "Target Entity Identifier"
+	triggertype(choices) : "Trigger Type" : 0 =
+	[
+		0 : "Toggle"
+		1 : "On"
+		2 : "Off"
+	]
+]
+
+@BaseClass = Usable
+[
+	usetxt(string) : "Use Text" : "Use"
+]
+
 @BaseClass size(-12 -12 -29, 12 12 29) color(0 255 0) = PlayerClass []
 @BaseClass size(-16 -16 0, 16 16 32) color(0 0 255) = MeshClass []
 @BaseClass size(-8 -8 0, 8 8 32) color(255 0 0) = DynamicClass []
 
-@PointClass = light : "Light" [
+@PointClass color(255 255 255) = light : "Light" [
 	color(color255) : "Color" : "255 255 255 255"
 	intensity(integer) : "Intensity" : 1
 ]
@@ -59,3 +80,17 @@
 		1 : "Clockwise"
 	]
 ]
+
+@SolidClass base(Targetable) = door_elevator : "Elevator Door"
+[
+	direction(choices) : "Open Direction" : 0 =
+	[
+		0 : "+X"
+		1 : "-X"
+		2 : "+Z"
+		3 : "-Z"
+	]
+	distmult(string) : "Move Distance Multiplier" : "1"
+]
+
+@SolidClass base(Trigger, Usable) = button : "Button" []

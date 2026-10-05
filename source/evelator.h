@@ -4,7 +4,33 @@
 class Evelator : public PhysEntity {
 public:
     Evelator() {
-        m_model = Model::LoadExternal("res/models/elevator.fbx");
+        m_direction = Vector(1, 0, 0);
+        m_distanceMult = 1.0f;
+    }
+
+    virtual void ApplyProperty(std::string key, std::string value) override {
+        PhysEntity::ApplyProperty(key, value);
+
+        if (key == "direction") {
+            int dir = std::stoi(value);
+
+            switch (dir) {
+            case 0:
+                m_direction = Vector(1, 0, 0);
+                break;
+            case 1:
+                m_direction = Vector(-1, 0, 0);
+                break;
+            case 2:
+                m_direction = Vector(0, 0, 1);
+                break;
+            case 3:
+                m_direction = Vector(0, 0, -1);
+                break;
+            }
+        } else if (key == "distmult") {
+            m_distanceMult = std::stof(value);
+        }
     }
 
     virtual void Spawn() override {
@@ -13,11 +39,12 @@ public:
         m_shape = PhysicsWorld::ShapeFromModel(m_model, false);
         InitializeRigidbody(m_shape, 0.0f);
 
+        Vector size = m_model->GetMax() - m_model->GetMin();
+
         m_initialDoorPosition = GetPos();
-        m_opendoorPosition = m_initialDoorPosition + Vector(1, 0, 0);
+        m_openDoorPosition = m_initialDoorPosition + m_direction * size * m_distanceMult;
         m_isMoving = false;
         m_isOpen = false;
-        ToggleDoor();
     }
 
     virtual void Clean() override {
@@ -26,37 +53,42 @@ public:
         PhysicsWorld::SafeDeleteShape(m_shape);
     }
 
-    virtual void Use(bool keydown) override {
-        if (keydown) {
-            ToggleDoor();
+    virtual void Trigger(bool state) override {
+        PhysEntity::Trigger(state);
+
+        if (m_isMoving || state == m_isOpen) {
+            return;
         }
+
+        m_isOpen = state;
+        m_isMoving = true;
     }
 
     virtual void FixedUpdate(float delta) override {
         PhysEntity::FixedUpdate(delta);
 
         if (m_isMoving) {
-            Vector target = m_isOpen ? m_opendoorPosition : m_initialDoorPosition;
+            Vector target = m_isOpen ? m_openDoorPosition : m_initialDoorPosition;
             Vector direction = (target - GetPos()).normalized();
-            SetPos(GetPos() + direction * m_doorSpeed * delta);
-            if ((target - GetPos()).length() < 0.01f) {
+            Vector movement = direction * m_doorSpeed * m_distanceMult * delta;
+            if (movement.length2() > (target - GetPos()).length2()) {
                 SetPos(target);
                 m_isMoving = false;
+            } else {
+                SetPos(GetPos() + movement);
             }
         }
     }
 
-    void ToggleDoor() {
-        if (m_isMoving) return;
-        m_isOpen = !m_isOpen;
-        m_isMoving = true;
-    }
-
 private:
+    Vector m_direction;
+    float m_distanceMult;
+    Vector m_initialDoorPosition;
+    Vector m_openDoorPosition;
     btCollisionShape* m_shape;
     bool m_isMoving = false;
     bool m_isOpen = false;
-    const float m_doorSpeed = 1.0f;
-    Vector m_opendoorPosition;
-    Vector m_initialDoorPosition;
+    const float m_doorSpeed = 0.5f;
 };
+
+ENTCLASS(door_elevator, Evelator)

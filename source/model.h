@@ -44,6 +44,8 @@ public:
 
     const std::vector<Mesh*>& GetMeshes() const { return m_meshes; }
     float GetRadius() const { return m_radius; }
+    Vector GetMin() const { return m_min; }
+    Vector GetMax() const { return m_max; }
 
 private:
     struct ImportData {
@@ -57,4 +59,5 @@ private:
 
     std::vector<Mesh*> m_meshes;
     float m_radius;
+    Vector m_min, m_max;
 };

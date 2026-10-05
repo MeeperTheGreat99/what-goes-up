@@ -17,6 +17,7 @@ public:
     static float WorldTime;
 
     static Entity* Create(std::string classname);
+    static std::vector<Entity*> FindTargets(std::string target);
 
     Entity() {
         EID id = 0;
@@ -79,16 +80,48 @@ public:
             SetPos(Vector::fromOrigin(value));
         } else if (key == "angles") {
             SetAngles(Vector::fromAngles(value));
+        } else if (key == "identifier") {
+            m_identifier = value;
+        } else if (key == "target") {
+            m_target = value;
+        } else if (key == "triggertype") {
+            m_triggerType = std::stoi(value);
         }
     }
 
     // Called after the entity is created
-    virtual void Spawn() {m_spawned = true;}
+    virtual void Spawn() {
+        m_spawned = true;
+        m_triggerState = false;
+    }
     // Called before the entity is destroyed
     virtual void Clean() {m_spawned = false;}
 
+    virtual void Trigger(bool state) { m_triggerState = state; }
+    bool IsTriggered() const { return m_triggerState; }
+    virtual bool IsTriggerable() const { return true; }
+
     // Called when the player presses/releases their use key while looking at the entity
-    virtual void Use(bool keydown) {}
+    virtual void Use(bool keydown) {
+        if (!m_target.empty()) {
+            std::vector<Entity*> targets = FindTargets(m_target);
+            for (Entity* target : targets) {
+                if (target->IsTriggerable()) {
+                    switch (m_triggerType) {
+                    case 0:
+                        target->Trigger(!target->IsTriggered());
+                        break;
+                    case 1:
+                        target->Trigger(true);
+                        break;
+                    case 2:
+                        target->Trigger(false);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     bool IsSpawned() const {return m_spawned;}
 
@@ -99,6 +132,10 @@ public:
 
 protected:
     Model* m_model;
+    std::string m_identifier;
+    std::string m_target;
+    int m_triggerType;
+    bool m_triggerState;
 
 private:
     EID m_id;
