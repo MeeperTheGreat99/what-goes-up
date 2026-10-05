@@ -20,6 +20,11 @@
 	angles(string) : "Pitch(X) Yaw(Y) Roll(Z)" : "0 0 0"
 ]
 
+@BaseClass = Parent
+[
+	child(string) : "Child Entity Identifier"
+]
+
 @BaseClass = Targetable
 [
 	identifier(string) : "Unique Identifier" : ""
@@ -42,8 +47,7 @@
 ]
 
 @BaseClass size(-12 -12 -29, 12 12 29) color(0 255 0) = PlayerClass []
-@BaseClass size(-16 -16 0, 16 16 32) color(0 0 255) = MeshClass []
-@BaseClass size(-8 -8 0, 8 8 32) color(255 0 0) = DynamicClass []
+@BaseClass size(-8 -8 0, 8 8 32) color(0 255 0) = DynamicClass []
 
 @PointClass color(255 255 255) = light : "Light" [
 	color(color255) : "Color" : "255 255 255 255"
@@ -51,21 +55,17 @@
 ]
 
 @PointClass base(PlayerClass, Angles) = info_player_start : "Player Start" []
-@PointClass base(MeshClass, Angles) = info_static_mesh : "Static Mesh"
-[
-	mesh(string) : "Filename of the mesh"
-]
 
-@PointClass base(DynamicClass, Angles) = prop_physics_mesh : "Physics Mesh"
+@PointClass base(DynamicClass, Angles) = prop_physics_model : "Physics Mesh"
 [
-	mesh(string) : "Filename of the mesh"
+	mesh(string) : "Model Filename"
 	spawnflags(flags) = 
 	[
 		1 : "Dynamic" : 0
 	]
 ]
 
-@PointClass base(Angles) = prop_door : "Door"
+@PointClass base(Angles, Targetable) = prop_door : "Door"
 [
 	model(choices) : "Model" : 1 =
 	[
@@ -79,7 +79,13 @@
 		0 : "Counter-Clockwise"
 		1 : "Clockwise"
 	]
+	spawnflags(flags) =
+	[
+		1 : "Locked" : 0
+	]
 ]
+
+@PointClass base(Angles) = item_keycard : "Keycard" []
 
 @SolidClass base(Targetable) = door_elevator : "Elevator Door"
 [
@@ -93,4 +99,12 @@
 	distmult(string) : "Move Distance Multiplier" : "1"
 ]
 
-@SolidClass base(Trigger, Usable) = button : "Button" []
+@SolidClass base(Targetable, Parent) = elevator : "Elevator"
+[
+	travel(string) : "Travel Delta" : "0 0 0"
+	speed(string) : "Movement Speed" : "1"
+	firstdoor(string) : "First Door Entity Identifier"
+	seconddoor(string) : "Second Door Entity Identifier"
+]
+
+@SolidClass base(Targetable, Trigger, Usable, Parent) = button : "Button" []

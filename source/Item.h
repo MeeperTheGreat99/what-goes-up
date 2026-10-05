@@ -26,3 +26,11 @@ public:
         m_name = "Thumb drive";
     }
 };
+
+class Keycard : public Item {
+public:
+    Keycard() {
+        m_model = Model::LoadExternal("res/models/card.glb");
+        m_name = "Keycard";
+    }
+};

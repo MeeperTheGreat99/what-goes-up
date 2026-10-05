@@ -49,6 +49,7 @@ public:
     void Resize(unsigned int width, unsigned int height);
     void KillLights();
     void SetSubtitleText(std::string text, float duration);
+    void SetInfoText(std::string text);
 
     void SetAudio(Audio* audio) {m_audio = audio;}
 
@@ -77,6 +78,7 @@ private:
     std::vector<Light*> m_lights;
     std::string m_subtitleText;
     float m_subtitleEndTime;
+    std::string m_infoText;
     Font* m_font;
     Camera* m_camera;
     Audio* m_audio;

@@ -124,7 +124,6 @@ Renderer::Renderer() {
 
     m_lightSphere = Model::LoadExternal("res/models/light.obj");
     m_reflection = new Cubemap("res/textures/sky");
-    m_subtitleText = "";
     m_subtitleEndTime = 0.0f;
     
     m_font = Font::Load("res/fonts/raleway.ttf");
@@ -334,10 +333,18 @@ void Renderer::Draw() {
         DrawText(
             m_subtitleText.c_str(), m_font, 32 * scale,
             m_width / 2, m_height - 64,
-            glm::vec4(1.0f), TextJustify(TextJustify::H::kCenter)
+            glm::vec4(1.0f), TextJustify::H::kCenter
         );
     } else if (!m_subtitleText.empty() && Entity::WorldTime >= m_subtitleEndTime) {
         m_subtitleText = "";
+    }
+
+    if (!m_infoText.empty()) {
+        DrawText(
+            m_infoText.c_str(), m_font, 32,
+            m_width / 2, m_height / 2 + 32,
+            glm::vec4(1.0f), TextJustify::H::kCenter
+        );
     }
 }
 
@@ -413,6 +420,10 @@ void Renderer::KillLights() {
 void Renderer::SetSubtitleText(std::string text, float duration) {
     m_subtitleText = text;
     m_subtitleEndTime = Entity::WorldTime + duration;
+}
+
+void Renderer::SetInfoText(std::string text) {
+    m_infoText = text;
 }
 
 void Renderer::DrawScene(bool isShadowPass, Camera::Frustum* frustum) {
