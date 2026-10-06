@@ -39,3 +39,11 @@ public:
         m_name = "Keycard";
     }
 };
+
+class Folder : public Item {
+public:
+    Folder() {
+        m_model = Model::LoadExternal("res/models/folder.glb");
+        m_name = "Confidential Information";
+    }
+};

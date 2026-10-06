@@ -3,7 +3,6 @@
 #include "clock.h"
 #include "map.h"
 #include "physdebugger.h"
-#include "player.h"
 #include "input.h"
 #include "physics.h"
 #include "renderer.h"
@@ -58,14 +57,7 @@ int main(int argc, char* argv[]) {
 
     window->SetMouseLocked(true);
 
-    Map::Load("intro");
-
-    Player* player = new Player();
-    player->SetInput(input);
-    player->SetPos(Map::GetPlayerPosition());
-    player->SetAngles(Map::GetPlayerAngles());
-    player->Spawn();
-    renderer->SetCamera(&player->GetCamera());
+    Map::Load("intr");
 
     window->Maximize();
 
@@ -104,6 +96,11 @@ int main(int argc, char* argv[]) {
         std::string fps = "FPS: " + std::to_string((int)(1.0f / delta));
         renderer->DrawText(fps.c_str(), nullptr, 16, 0, 0);
         window->SwapScreen();
+
+        if (!Map::QueuedMap.empty()) {
+            Map::Load(Map::QueuedMap);
+            Map::QueuedMap = "";
+        }
     }
 
     delete physicsDebugger;

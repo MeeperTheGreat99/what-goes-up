@@ -3,9 +3,11 @@
 #include "mapper/mapconvert.h"
 #include "mapper/mapent.h"
 #include "mapper/map2mesh.h"
+#include "player.h"
 #include "world.h"
 #include <fstream>
 
+std::string Map::QueuedMap = "";
 std::string Map::CurrentMap = "";
 Vector Map::PlayerPosition;
 Vector Map::PlayerAngles;
@@ -140,10 +142,16 @@ void Map::Load(std::string name) {
         }
     }
 
+    Player* player = new Player();
+    player->SetInput(Input::Instance);
+    player->SetPos(Map::GetPlayerPosition());
+    player->SetAngles(Map::GetPlayerAngles());
+    Renderer::Instance->SetCamera(&player->GetCamera());
+
     for (auto& entry : Entity::Entities) {
         entry.second->Spawn();
     }
-
+    
     CurrentMap = name;
 }
 
@@ -152,12 +160,14 @@ void Map::Unload() {
         return;
     }
 
-    auto& toRemove = Entity::Entities;
+    auto toRemove = Entity::Entities;
     for (auto& entry : toRemove) {
         Entity* entity = entry.second;
         entity->Clean();
         delete entity;
     }
+
+    Renderer::Instance->KillLights();
 
     CurrentMap = "";
 }

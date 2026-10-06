@@ -162,6 +162,41 @@ protected:
     }
 };
 
+class SkyShader : public Shader {
+public:
+    SkyShader() : Shader("res/shaders/object.vs", "res/shaders/sky.fs") {}
+
+    void SetProj(glm::mat4 proj) {
+        SetUniform(m_uProj, proj);
+    }
+
+    void SetView(glm::mat4 view) {
+        SetUniform(m_uView, view);
+    }
+
+    void SetModel(glm::mat4 model) {
+        SetUniform(m_uModel, model);
+    }
+
+    void SetAlbedoTex(int slot) {
+        SetUniform(m_uAlbedoSlot, slot);
+    }
+
+protected:
+    int m_uProj;
+    int m_uView;
+    int m_uModel;
+    int m_uAlbedoSlot;
+
+    virtual void Load() override {
+        Shader::Load();
+        m_uProj = GetUniformLocation("Proj");
+        m_uView = GetUniformLocation("View");
+        m_uModel = GetUniformLocation("Model");
+        m_uAlbedoSlot = GetUniformLocation("tex_albedo");
+    }
+};
+
 class ShadowShader : public Shader {
 public:
     ShadowShader() : Shader("res/shaders/object.vs", "res/shaders/shadow.fs") {}

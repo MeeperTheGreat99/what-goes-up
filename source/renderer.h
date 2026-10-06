@@ -50,6 +50,8 @@ public:
     void KillLights();
     void SetSubtitleText(std::string text, float duration);
     void SetInfoText(std::string text);
+    void SetBlackScreen(bool blackScreen);
+    void SetTitleCard(bool titleCard);
 
     void SetAudio(Audio* audio) {m_audio = audio;}
 
@@ -68,17 +70,22 @@ private:
     bool m_pingPongState;
     LineShader* m_lineShader;
     ObjectShader* m_objectShader;
+    SkyShader* m_skyShader;
     ShadowShader* m_shadowShader;
     LightSphereShader* m_lightSphereShader;
     LightShader* m_lightShader;
     Shader* m_screenShader;
     TextShader* m_textShader;
     Model* m_lightSphere;
+    Model* m_cube;
     Cubemap* m_reflection;
+    Cubemap* m_sky;
     std::vector<Light*> m_lights;
     std::string m_subtitleText;
     float m_subtitleEndTime;
     std::string m_infoText;
+    bool m_blackScreen;
+    bool m_titleCard;
     Font* m_font;
     Camera* m_camera;
     Audio* m_audio;

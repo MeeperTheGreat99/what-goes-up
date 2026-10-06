@@ -20,6 +20,7 @@ private:
     Vector m_firstPosition;
     Vector m_secondPosition;
     bool m_isMoving;
+    float m_trapTime;
 
     void MoveDoor(std::string identifier, bool open);
 };

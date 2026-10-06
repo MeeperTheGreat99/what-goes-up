@@ -1,5 +1,11 @@
 #include "input.h"
 
+Input* Input::Instance = nullptr;
+
+Input::Input() {
+    Instance = this;
+}
+
 Input::~Input() {
     for (auto& pair : m_actions) {
         delete pair.second;

@@ -86,6 +86,7 @@
 ]
 
 @PointClass base(Angles) = item_keycard : "Keycard" []
+@PointClass base(Angles) = item_folder : "Folder" []
 
 @SolidClass base(Targetable) = door_elevator : "Elevator Door"
 [
@@ -107,4 +108,21 @@
 	seconddoor(string) : "Second Door Entity Identifier"
 ]
 
+@SolidClass base(Trigger) = trigger : "Trigger" []
+
+@SolidClass base(Targetable) = fakefloor : "Fake Floor" []
+
 @SolidClass base(Targetable, Trigger, Usable, Parent) = button : "Button" []
+
+@PointClass base(Trigger, Usable, Angles) = keycard_reader : "Keycard Reader" []
+
+@PointClass base(Targetable) = impulse : "Impulse Function" [
+	spawnflags(flags) =
+	[
+		1 : "Black screen" : 0
+		2 : "Collapse Ending Audio" : 0
+		4 : "Phone Audio" : 0
+		8 : "No way..." : 0
+		16 : "Guess not" : 0
+	]
+]

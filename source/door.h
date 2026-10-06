@@ -9,6 +9,7 @@ public:
     virtual void Spawn() override;
     virtual void Clean() override;
     virtual void Use(bool keydown) override;
+    virtual void Trigger(bool state) override;
     virtual void FixedUpdate(float delta) override;
 
 private:

@@ -27,6 +27,7 @@ void Elevator::Spawn() {
     m_firstPosition = GetPos();
     m_secondPosition = m_firstPosition + m_travel;
     m_isMoving = false;
+    m_trapTime = 0.0f;
 }
 
 void Elevator::Clean() {
@@ -50,6 +51,11 @@ void Elevator::Trigger(bool state) {
 }
 
 void Elevator::FixedUpdate(float delta) {
+    if (m_trapTime && Entity::WorldTime >= m_trapTime) {
+        m_trapTime = 0.0f;
+        MoveDoor(m_secondDoor, false);
+    }
+
     if (!m_isMoving) {
         return;
     }
@@ -60,6 +66,10 @@ void Elevator::FixedUpdate(float delta) {
     if ((movement.length2() > (target - GetPos()).length2()) || GetPos() == target) {
         SetPos(target);
         MoveDoor(m_triggerState ? m_secondDoor : m_firstDoor, true);
+
+        if (m_triggerState) {
+            m_trapTime = Entity::WorldTime + 5.0f;
+        }
 
         m_isMoving = false;
     } else {

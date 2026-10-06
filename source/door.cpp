@@ -73,6 +73,14 @@ void Door::Use(bool keydown) {
     }
 }
 
+void Door::Trigger(bool state) {
+    m_locked = state;
+    if (state && m_open) {
+        m_open = false;
+        m_moving = true;
+    }
+}
+
 void Door::FixedUpdate(float delta) {
     PhysEntity::FixedUpdate(delta);
 

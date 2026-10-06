@@ -4,6 +4,8 @@
 
 class Map {
 public:
+    static std::string QueuedMap;
+
     static void Load(std::string name);
     static std::string GetCurrentMap() { return CurrentMap; }
     static Vector GetPlayerPosition() { return PlayerPosition; }

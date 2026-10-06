@@ -8,7 +8,7 @@ class Player : public PhysEntity {
 public:
     struct {
         std::vector <Item*> items;
-    } m_inventory;
+    } inventory;
 
     static constexpr float Friction = 8.0f;
     static constexpr float MaxSpeed = 6.0f;
@@ -18,6 +18,12 @@ public:
     static constexpr float CollisionRadius = 0.4f;
     static constexpr float CollisionHeight = 1.8f;
     static constexpr float ViewOfs = -0.2f;
+    
+    static Player* Instance;
+
+    Player() {
+        Instance = this;
+    }
 
     virtual void SetAngles(Vector angles) override {
         m_lookAngles = angles;
@@ -43,10 +49,6 @@ public:
 
         m_voice = new Audio::Source(nullptr);
         m_voice->Set3D();
-        m_sequence = new Audio::Sequence(m_voice);
-        m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/door_unlocked.wav"));
-        m_sequence->AddSample(Audio::Instance->LoadSample("res/sounds/voicelines/guessed_wrong.wav"));
-        // m_sequence->Play();
         
         m_onGroundPrev = false;
         m_airJump = false;
@@ -59,6 +61,7 @@ public:
         m_rigidbody->setSleepingThresholds(0.0f, 0.0f);
         m_useEnt = nullptr;
         m_heldItem = nullptr;
+        m_folders = 0;
     }
 
     virtual void Clean() override {
@@ -76,7 +79,6 @@ public:
 
         m_stepSource->SetPos(GetPos());
         m_voice->SetPos(GetPos());
-        // m_sequence->Update();
         m_camera.SetPos(GetHeadPos());
         m_camera.SetAng(m_lookAngles);
 
@@ -85,7 +87,6 @@ public:
             Vector up = right.cross(m_lookAngles.direction()).normalized();
             m_heldItem->SetPos(GetHeadPos() + m_lookAngles.direction() * 0.25f + right * 0.35f - up * 0.2f);
             m_heldItem->SetAngles(m_lookAngles + Vector(70, 0, 0));
-            printf("ang %f %f %f\n", m_lookAngles.x, m_lookAngles.y, m_lookAngles.z);
         }
 
         m_moveInput = Vector(0.0f, 0.0f, 0.0f);
@@ -130,6 +131,11 @@ public:
         Vector trStart = GetPos() - Vector(0.0f, CollisionHeight * 0.5f - CollisionRadius, 0.0f);
         bool onGround = PhysicsWorld::TraceShape(trStart, trStart - Vector(0.0f, 0.02f, 0.0f), m_trShape, result);
         Vector groundNormal = onGround ? result.normal : Vector(0, 1, 0);
+        if (groundNormal.dot(Vector(0, 1, 0)) < 0.5f) {
+            groundNormal = Vector(0, 1, 0);
+            onGround = false;
+        }
+
         Vector groundRight = forward.cross(groundNormal).normalized();
         Vector groundForward = groundNormal.cross(groundRight).normalized();
 
@@ -172,8 +178,30 @@ public:
             Item* item = dynamic_cast<Item*>(m_useEnt);
             if (item) {
                 item->SetCollisionEnabled(false);
-                m_inventory.items.push_back(item);
+                inventory.items.push_back(item);
+
+                if (m_heldItem) {
+                    m_heldItem->SetPos(4096.0f);
+                }
+
                 m_heldItem = item;
+
+                Folder* folder = dynamic_cast<Folder*>(item);
+                if (folder) {
+                    switch (m_folders) {
+                    case 0:
+                        Say("res/sounds/voicelines/keep_looking.wav");
+                        break;
+                    case 1:
+                        Say("res/sounds/voicelines/more_concrete.wav");
+                        break;
+                    case 2:
+                        Say("res/sounds/voicelines/perfect_for_media.wav");
+                        break;
+                    }
+
+                    m_folders++;
+                }
             } else {
                 m_useEnt->Use(true);
             }
@@ -228,6 +256,13 @@ public:
         }
     }
 
+    void Say(std::string filename) {
+        m_voice->SetSample(Audio::Instance->LoadSample(filename));
+        m_voice->Play();
+    }
+
+    Item* GetHeldItem() { return m_heldItem; }
+
     void SetInput(Input* input) {m_input = input;}
 
     Camera& GetCamera() {return m_camera;}
@@ -244,7 +279,6 @@ private:
     Audio::Sample* m_stepSounds[4];
     Audio::Source* m_stepSource;
     Audio::Source* m_voice;
-    Audio::Sequence* m_sequence;
     bool m_onGroundPrev;
     bool m_airJump;
     float m_nextStepTime;
@@ -256,4 +290,5 @@ private:
     Vector m_moveInput;
     Entity* m_useEnt;
     Item* m_heldItem;
+    int m_folders;
 };

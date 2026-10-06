@@ -21,6 +21,9 @@ public:
         bool m_held, m_heldPrev;
     };
 
+    static Input* Instance;
+
+    Input();
     ~Input();
 
     void Update();

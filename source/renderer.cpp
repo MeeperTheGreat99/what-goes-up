@@ -97,6 +97,10 @@ Renderer::Renderer() {
     m_objectShader->SetAlbedoTex(0);
     m_objectShader->SetNormalTex(1);
 
+    m_skyShader = new SkyShader();
+    m_skyShader->Finalize();
+    m_skyShader->SetAlbedoTex(0);
+
     m_shadowShader = new ShadowShader();
     m_shadowShader->Finalize();
 
@@ -123,7 +127,9 @@ Renderer::Renderer() {
     m_textShader->Finalize();
 
     m_lightSphere = Model::LoadExternal("res/models/light.obj");
-    m_reflection = new Cubemap("res/textures/sky");
+    m_cube = Model::LoadExternal("res/models/cube.glb");
+    m_reflection = new Cubemap("res/textures/reflection");
+    m_sky = new Cubemap("res/textures/sky");
     m_subtitleEndTime = 0.0f;
     
     m_font = Font::Load("res/fonts/raleway.ttf");
@@ -136,6 +142,7 @@ Renderer::Renderer() {
 Renderer::~Renderer() {
     delete m_font;
     delete m_reflection;
+    delete m_cube;
     delete m_lightSphere;
     delete m_textShader;
     delete m_screenShader;
@@ -313,6 +320,14 @@ void Renderer::Draw() {
     glBindVertexArray(m_screenVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    /* m_skyShader->Use();
+    m_skyShader->SetProj(m_camera->GetProj());
+    m_skyShader->SetView(glm::mat4(glm::mat3(m_camera->GetView())));
+    m_skyShader->SetModel(glm::mat4(1.0f));
+
+    m_sky->Use(0);
+    m_cube->Draw(); */
+
     // END LIGHTING PASS
 
     m_screenShader->Use();
@@ -320,7 +335,12 @@ void Renderer::Draw() {
     glBindTexture(GL_TEXTURE_2D, m_pingPongTextures[m_pingPongState]);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    if (m_blackScreen) {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
 
     if (!m_subtitleText.empty() && Entity::WorldTime < m_subtitleEndTime) {
         float textWidth = GetTextWidth(m_subtitleText.c_str(), m_font, 32);
@@ -343,6 +363,14 @@ void Renderer::Draw() {
         DrawText(
             m_infoText.c_str(), m_font, 24,
             m_width / 2, m_height / 2 + 32,
+            glm::vec4(1.0f), TextJustify::H::kCenter
+        );
+    }
+
+    if (m_titleCard) {
+        DrawText(
+            "WHAT GOES UP...", m_font, 72,
+            m_width / 2, m_height / 2,
             glm::vec4(1.0f), TextJustify::H::kCenter
         );
     }
@@ -424,6 +452,14 @@ void Renderer::SetSubtitleText(std::string text, float duration) {
 
 void Renderer::SetInfoText(std::string text) {
     m_infoText = text;
+}
+
+void Renderer::SetBlackScreen(bool blackScreen) {
+    m_blackScreen = blackScreen;
+}
+
+void Renderer::SetTitleCard(bool titleCard) {
+    m_titleCard = titleCard;
 }
 
 void Renderer::DrawScene(bool isShadowPass, Camera::Frustum* frustum) {
